@@ -41,7 +41,6 @@ namespace VRStandardAssets.Maze
             m_Player.OnPlayerShot += HandlePlayerShot;
         }
 
-
         private void OnDisable ()
         {
             //m_ExitArea.OnGameComplete -= HandleGameComplete;
