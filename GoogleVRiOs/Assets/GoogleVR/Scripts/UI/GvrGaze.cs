@@ -22,7 +22,8 @@ public class GvrGaze : MonoBehaviour
 {
     /// The active Gaze Pointer for this camera. Must have IGvrGazePointer.
     /// The IGvrGazePointer responds to events from this class.
-    public GameObject PointerObject {
+    public GameObject PointerObject 
+    {
         get {
             return pointerObject;
         }
@@ -95,6 +96,8 @@ public class GvrGaze : MonoBehaviour
     {
         cam = GetComponent<Camera> ();
         PointerObject = pointerObject;
+
+        Debug.Log("******************"+this.gameObject.name);
     }
 
     void OnEnable ()
@@ -205,7 +208,7 @@ public class GvrGaze : MonoBehaviour
     }
 
     private GameObject FindGazeTarget (float radius, out IGvrGazeResponder responder,
-                                    out Vector3 intersectPosition)
+                                       out Vector3 intersectPosition)
     {
         RaycastHit hit;
         GameObject targetObject = null;

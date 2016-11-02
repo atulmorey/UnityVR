@@ -22,6 +22,7 @@ public class Teleport : MonoBehaviour, IGvrGazeResponder
 
     private Vector3 _cubeStartingPos;
     private Vector3 _mainCamStartingPos;
+    private float _portSpeed = 5f;
 
     void Start ()
     {
@@ -78,7 +79,9 @@ public class Teleport : MonoBehaviour, IGvrGazeResponder
 
     public void TeleportToTarget()
     {
-        MainCamera.transform.localPosition = transform.localPosition;
+        float time = Vector3.Distance(MainCamera.transform.position, transform.position) / _portSpeed;
+        LeanTween.move(MainCamera, transform.localPosition, time);
+
     }
 
    
