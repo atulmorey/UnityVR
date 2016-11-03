@@ -16,7 +16,7 @@ public class SceneTeleport : MonoBehaviour
     private float _fillAmount = 0f;
     private float _startTime;
 
-    private float _timerInSec = 2f;
+    private float _fillTime = 1.5f;
 
     private int _tweenID; //USE this to cancel the tween animations
 
@@ -38,7 +38,7 @@ public class SceneTeleport : MonoBehaviour
         //Animate the fill amount using LeanTween
         //Cache the ID to cancel this tween if needed
         _tweenID = 
-        LeanTween.value(this.gameObject, 0f, 1f, _timerInSec).setOnUpdate((float val) =>
+        LeanTween.value(this.gameObject, 0f, 1f, _fillTime).setOnUpdate((float val) =>
             {
                 _fillImage.fillAmount = val;
             }
@@ -65,7 +65,7 @@ public class SceneTeleport : MonoBehaviour
     public void LoadTargetScene()
     {
         //Transition to new scene
-        GameManager.Instance.LoadScene(TargetScene);
+//        GameManager.Instance.LoadScene(TargetScene);
 
     }
 
