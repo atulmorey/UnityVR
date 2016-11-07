@@ -19,16 +19,26 @@ using System.Collections;
 public class Teleport : MonoBehaviour, IGvrGazeResponder
 {
     public GameObject MainCamera;
+    public Material CubeDefaultMat;
 
     private Vector3 _cubeStartingPos;
+    private Quaternion _cubeStartingRot;
     private Vector3 _mainCamStartingPos;
     private float _portSpeed = 5f;
+    private int _rotateTweenId;
+    private int _scaleTweenId;
 
     void Start ()
     {
         _cubeStartingPos = transform.localPosition;
+        _cubeStartingRot = transform.localRotation;
+
         _mainCamStartingPos = MainCamera.transform.localPosition;
 
+        //Set the default material
+        GetComponent<Renderer>().material = CubeDefaultMat;
+
+        SetVisualEffect();
         SetGazedAt (false);
     }
 
@@ -37,12 +47,55 @@ public class Teleport : MonoBehaviour, IGvrGazeResponder
         GvrViewer.Instance.UpdateState ();
         if (GvrViewer.Instance.BackButtonPressed) {
             Application.Quit ();
+
         }
+    }
+
+    void SetVisualEffect()
+    {
+        //Force reset the material
+        GetComponent<Renderer>().material = CubeDefaultMat;  
+
+        _rotateTweenId = LeanTween.rotateY(gameObject, transform.localEulerAngles.y + 90f, 2f).setEase(LeanTweenType.easeInOutCubic).setLoopPingPong().id;
+
+        float perctIncrease = 5f;
+        Vector3 targetScale = new Vector3(perctIncrease * 0.01f / transform.localScale.x, perctIncrease * 0.01f / transform.localScale.y, perctIncrease * 0.01f / transform.localScale.z);
+
+        _scaleTweenId = LeanTween.scale(gameObject, targetScale, 2f).setEase(LeanTweenType.easeInOutCubic).setLoopPingPong().id;
+
+    }
+
+    void DisableThisGameobject()
+    {
+        gameObject.SetActive(false);
     }
 
     public void SetGazedAt (bool gazedAt)
     {
-        GetComponent<Renderer> ().material.color = gazedAt ? Color.green : Color.red;
+        //Make the cube turn green in 2 seconds when set gaze on
+        //Once complete, do the trigger
+
+        Material thisMat = gameObject.GetComponent<Renderer>().material;
+        if (gazedAt)
+        {
+            //Cancel tweens
+            LeanTween.cancel(gameObject);       
+
+            //Animate the emission on the material for 2 seconds
+            thisMat.EnableKeyword("_EMISSION");
+            thisMat.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive;
+
+            LeanTween.color(gameObject, Color.green, 2f).setOnUpdate((Color col) =>
+                {
+                    thisMat.SetColor("_EmissionColor", col);
+                }).setOnComplete(OnGazeTrigger);
+        }
+        else
+        {
+            GetComponent<Renderer>().material = CubeDefaultMat;         
+            SetVisualEffect();
+        }
+         
     }
 
     public void Reset ()
@@ -69,22 +122,14 @@ public class Teleport : MonoBehaviour, IGvrGazeResponder
     }
     #endif  //  !UNITY_HAS_GOOGLEVR || UNITY_EDITOR
 
-//    public void TeleportRandomly ()
-//    {
-//        Vector3 direction = Random.onUnitSphere;
-//        direction.y = Mathf.Clamp (direction.y, 0.5f, 1f);
-//        float distance = 2 * Random.value + 1.5f;
-//        transform.localPosition = direction * distance;
-//    }
 
     public void TeleportToTarget()
     {
         float time = Vector3.Distance(MainCamera.transform.position, transform.position) / _portSpeed;
-        LeanTween.move(MainCamera, transform.localPosition, time);
+//        DisableThisGameobject();
+        LeanTween.move(MainCamera, transform.position, time).setOnComplete(SetVisualEffect);
 
-    }
-
-   
+    }   
 
     #region IGvrGazeResponder implementation
 
@@ -104,7 +149,7 @@ public class Teleport : MonoBehaviour, IGvrGazeResponder
 
     /// Called when the viewer's trigger is used, between OnGazeEnter and OnGazeExit.
     public void OnGazeTrigger ()
-    {
+    {        
         TeleportToTarget();
     }
 
