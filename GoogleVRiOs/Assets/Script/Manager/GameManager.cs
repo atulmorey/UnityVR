@@ -25,7 +25,7 @@ public class GameManager : MonoBehaviour
         SceneManager.LoadScene(sceneName);
 
         //Load
-        GameObject.Find("Loader").GetComponent<BootLoader>().Load();
+        GameObject.Find("BootLoader").GetComponent<BootLoader>().Load();
 
         TrigeerBootSceneIntroSequence();
     }
