@@ -65,7 +65,10 @@ public class SceneTeleport : MonoBehaviour
     public void LoadTargetScene()
     {
         //Transition to new scene
+//        GameManager.Instance.CameraFade();
         GameManager.Instance.LoadScene(TargetScene);
+
+
 
     }
 

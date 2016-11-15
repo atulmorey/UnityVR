@@ -28,6 +28,8 @@ public class Teleport : MonoBehaviour, IGvrGazeResponder
     private int _rotateTweenId;
     private int _scaleTweenId;
 
+    private GameManager _gameManager;
+
     void Start ()
     {
         _cubeStartingPos = transform.localPosition;
@@ -40,6 +42,11 @@ public class Teleport : MonoBehaviour, IGvrGazeResponder
 
         SetVisualEffect();
         SetGazedAt (false);
+
+        _gameManager = GameManager.Instance;
+
+
+
     }
 
     void LateUpdate ()
@@ -127,7 +134,22 @@ public class Teleport : MonoBehaviour, IGvrGazeResponder
     {
         float time = Vector3.Distance(MainCamera.transform.position, transform.position) / _portSpeed;
 //        DisableThisGameobject();
-        LeanTween.move(MainCamera, transform.position, time).setOnComplete(SetVisualEffect);
+
+        //Option 1: Animate
+//        LeanTween.move(MainCamera, transform.position, time).setOnComplete(SetVisualEffect);
+
+        //Option 2: just teleport
+//        MainCamera.transform.position = transform.position;
+
+
+        //Option 3: Camera Fade
+        float fadeTime = _gameManager.FadeTime;
+
+        LeanTween.value(0f, 1f, fadeTime).setOnStart(_gameManager.CameraFade).setOnComplete(_gameManager.CameraFade);
+        MainCamera.transform.position = transform.position;
+      
+
+        SetVisualEffect();
 
     }   
 

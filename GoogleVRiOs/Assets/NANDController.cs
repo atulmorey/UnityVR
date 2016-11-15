@@ -147,12 +147,7 @@ public class NANDController : MonoBehaviour
 
         SiliconEtched.SetActive(true);
 
-        UpdateCameraStep2();
-    }
-
-    void UpdateCameraStep2()
-    {
-        LeanTween.move(MainCamera, CameraTarget.position, _stepAnimTime).setOnComplete(Step3SiliconEtch);
+        Step3SiliconEtch();
     }
 
     void Step3SiliconEtch()

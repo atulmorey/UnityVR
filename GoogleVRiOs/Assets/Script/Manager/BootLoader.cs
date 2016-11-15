@@ -5,11 +5,15 @@ public class BootLoader : MonoBehaviour
 {
     public GameObject GameManagerObj;
 
+
     void Awake()
     {
         if (GameManager.Instance == null)
         {
             Load();
+
+
+           
         }
 
       
@@ -18,5 +22,8 @@ public class BootLoader : MonoBehaviour
     public void Load()
     {
         Instantiate(GameManagerObj);
+       
     }
+
+   
 }

@@ -6,12 +6,23 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance = null;
 
+    public float FadeTime = 0f;
+
     private GameObject _sequenceManagerObj;
+
+    private ScreenFader _screenFader;
+
 
     void Awake()
     {
         if (Instance == null)
+        {
             Instance = this;
+            _screenFader = GetComponent<ScreenFader>();
+
+            if (_screenFader == null) Debug.LogError("Screen Fader component is missing from GameManager");
+            FadeTime = _screenFader.fadeTime;
+        }
         else if (Instance != null)
             Destroy(gameObject);
 
@@ -47,5 +58,11 @@ public class GameManager : MonoBehaviour
         {
             Debug.LogError("SequenceManager game object is missing from the scene");
         }
+    }
+
+    public void CameraFade()
+    {
+        _screenFader.fadeIn = !_screenFader.fadeIn;
+
     }
 }
