@@ -29,6 +29,8 @@ public class Teleport : MonoBehaviour, IGvrGazeResponder
     private int _scaleTweenId;
 
     private GameManager _gameManager;
+    private ScreenFader _screenFader;
+    private float _camFadeTime = 1f;
 
     void Start ()
     {
@@ -44,6 +46,9 @@ public class Teleport : MonoBehaviour, IGvrGazeResponder
         SetGazedAt (false);
 
         _gameManager = GameManager.Instance;
+        _screenFader = MainCamera.GetComponent<ScreenFader>();
+
+        if (_screenFader == null) Debug.LogError("Screen fader component is missing from Main Camera");
 
 
 
@@ -143,15 +148,19 @@ public class Teleport : MonoBehaviour, IGvrGazeResponder
 
 
         //Option 3: Camera Fade
-        float fadeTime = _gameManager.FadeTime;
+        _camFadeTime = time / 2f;
+        LeanTween.move(MainCamera, transform.position, time).setOnStart(FadeIn).setOnComplete(FadeIn);
 
-        LeanTween.value(0f, 1f, fadeTime).setOnStart(_gameManager.CameraFade).setOnComplete(_gameManager.CameraFade);
-        MainCamera.transform.position = transform.position;
-      
 
-        SetVisualEffect();
 
     }   
+
+    void FadeIn()
+    {
+        _screenFader.fadeTime = _camFadeTime;
+
+        _screenFader.fadeIn = !_screenFader.fadeIn;
+    }
 
     #region IGvrGazeResponder implementation
 

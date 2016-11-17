@@ -10,10 +10,7 @@ public class BootLoader : MonoBehaviour
     {
         if (GameManager.Instance == null)
         {
-            Load();
-
-
-           
+            Load();           
         }
 
       
