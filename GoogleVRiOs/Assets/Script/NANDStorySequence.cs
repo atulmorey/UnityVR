@@ -21,8 +21,10 @@ public class NANDStorySequence : MonoBehaviour
     public Material OxideMat2;
     public Material NitrideMat1;
     public Material NitrideMat2;
-    public Material HardMaskMat1;
-    public Material HardMaskMat2;
+    public Material ChannelHardMaskMat1;
+    public Material ChannelHardMaskMat2;
+    public Material ChennelHolesMat;
+    public Material StaircaseHardMaskMat;
 
     [Header("Values")]
     public int NumberOfLayers = 3;
@@ -33,12 +35,15 @@ public class NANDStorySequence : MonoBehaviour
     private GameObject[] _nitrideLayers1;
     private GameObject _hardMaskLayer1;
     private GameObject _channelHoles1;
+    private GameObject[] _staircaseHardMask1;
 
     private GameObject _siliconSubstrate2;
     private GameObject[] _oxideLayers2;
     private GameObject[] _nitrideLayers2;
     private GameObject _hardMaskLayer2;
     private GameObject _channelHoles2;
+    private GameObject[] _staircaseHardMask2;
+
 
     private Vector3 AnimStartPos = new Vector3 (0,200,0);
 
@@ -147,20 +152,20 @@ public class NANDStorySequence : MonoBehaviour
     void MoveCameraToCut1()
     {
         //Move Camera to the first cut
-        LeanTween.move(MainCamera, CamFirstCutPos.position, 3f).setOnComplete(LayHardMaskDeposition);
+        LeanTween.move(MainCamera, CamFirstCutPos.position, 3f).setOnComplete(DepositChannelHoleHardMask);
 
 
     }
 
-    void LayHardMaskDeposition()
+    void DepositChannelHoleHardMask()
     {
         float hardMaskAnimtime = 3f;
 
         //FIRST HALF
         _hardMaskLayer1 = GameObject.Instantiate(OneLayer);
-        _hardMaskLayer1.name = "HardMaskLayer";
+        _hardMaskLayer1.name = "ChannelHardMask";
         _hardMaskLayer1.transform.parent = Half1;
-        _hardMaskLayer1.GetComponent<Renderer>().material = HardMaskMat1;
+        _hardMaskLayer1.GetComponent<Renderer>().material = ChannelHardMaskMat1;
         _hardMaskLayer1.transform.localScale = new Vector3(1,2,1);
         _hardMaskLayer1.transform.localPosition = AnimStartPos;
         targetY+=(0.5f * layerOffsetDistanceY); //Notice that the Y scale is 2 for hardmask, hence added offset
@@ -168,17 +173,17 @@ public class NANDStorySequence : MonoBehaviour
 
         //SECOND HALF
         _hardMaskLayer2 = GameObject.Instantiate(OneLayer);
-        _hardMaskLayer2.name = "HardMaskLayer";
+        _hardMaskLayer2.name = "ChannelHardMask";
         _hardMaskLayer2.transform.parent = Half2;
-        _hardMaskLayer2.GetComponent<Renderer>().material = HardMaskMat2;
+        _hardMaskLayer2.GetComponent<Renderer>().material = ChannelHardMaskMat2;
         _hardMaskLayer2.transform.localScale = new Vector3(1,2,1);
         _hardMaskLayer2.transform.localPosition = AnimStartPos;
-        LeanTween.moveLocalY (_hardMaskLayer2, targetY, hardMaskAnimtime).setOnComplete(BeginChannelHoleEtchStep1); 
+        LeanTween.moveLocalY (_hardMaskLayer2, targetY, hardMaskAnimtime).setOnComplete(BeginChannelHolesStep1); 
     }
 
 
 
-    void BeginChannelHoleEtchStep1()
+    void BeginChannelHolesStep1()
     {
         float channelHoleTargetY = 107f;
 
@@ -206,7 +211,7 @@ public class NANDStorySequence : MonoBehaviour
 
     void ChannelHoleEtchStep2()
     {
-        float etchAnimTime = 5f;
+        float etchAnimTime = 0.1f;
 
         float channelHole1TargetYPos = 52.25f;
         float channelHole1TargetYScale = 52f;
@@ -220,7 +225,7 @@ public class NANDStorySequence : MonoBehaviour
 
         //FADE OUT HARD MASK
         LeanTween.alpha(_hardMaskLayer1, 0f, etchAnimTime);
-        LeanTween.alpha(_hardMaskLayer2, 0f, etchAnimTime);
+        LeanTween.alpha(_hardMaskLayer2, 0f, etchAnimTime).setOnComplete(FinalizeEtch);
 
 
     }
@@ -229,6 +234,9 @@ public class NANDStorySequence : MonoBehaviour
     {
         _hardMaskLayer1.SetActive(false);
         _hardMaskLayer2.SetActive(false);
+
+        //BEGIN NEXT STEP i.e. DepositStairCaseHardMask()
+        DepositStairCaseHardMask();
 
     }
 
@@ -240,8 +248,41 @@ public class NANDStorySequence : MonoBehaviour
         }
     }
 
-    void StairCaseHardMask()
+    void DepositStairCaseHardMask()
     {
+
+        float CHMAnimTime = 3f;
+
+        float thickness = 0.3f;
+
+        _staircaseHardMask1 = new GameObject[NumberOfLayers];
+        _staircaseHardMask2 = new GameObject[NumberOfLayers];
+
+        float firstLayerY = 104.242f;
+        float offset = thickness * 1.5f;
+
+        for(int st = 0; st < NumberOfLayers; st++)
+        {
+
+            //FIRST HALF
+            _staircaseHardMask1[st] = GameObject.Instantiate(OneLayer);
+            _staircaseHardMask1[st].name = "StaircaseHardMask"+st.ToString();
+            _staircaseHardMask1[st].transform.parent = Half1;
+            _staircaseHardMask1[st].GetComponent<Renderer>().material = StaircaseHardMaskMat;
+            _staircaseHardMask1[st].transform.localScale = new Vector3(1,thickness,1);
+            _staircaseHardMask1[st].transform.localPosition = AnimStartPos;
+            targetY = firstLayerY + (st * thickness * 1.5f) + 0.1f; 
+            LeanTween.moveLocalY (_staircaseHardMask1[st], targetY, CHMAnimTime); 
+
+            //Second HALF
+            _staircaseHardMask2[st] = GameObject.Instantiate(OneLayer);
+            _staircaseHardMask2[st].name = "StaircaseHardMask";
+            _staircaseHardMask2[st].transform.parent = Half2;
+            _staircaseHardMask2[st].GetComponent<Renderer>().material = StaircaseHardMaskMat;
+            _staircaseHardMask2[st].transform.localScale = new Vector3(1,thickness,1);
+            _staircaseHardMask2[st].transform.localPosition = AnimStartPos;
+            LeanTween.moveLocalY (_staircaseHardMask2[st], targetY, CHMAnimTime); 
+        }
 
     }
 
