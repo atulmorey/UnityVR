@@ -813,7 +813,7 @@ public class LeanTween : MonoBehaviour {
 
 	public static LTDescr options(LTDescr seed){ Debug.LogError("error this function is no longer used"); return null; }
 	public static LTDescr options(){
-		init();
+		init(800);
 
 		bool found = false;
 		//		Debug.Log("Search start");

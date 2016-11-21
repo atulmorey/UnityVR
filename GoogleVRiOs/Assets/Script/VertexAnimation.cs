@@ -4,30 +4,45 @@ using System.Collections.Generic;
 
 public class VertexAnimation : MonoBehaviour 
 {
-    public float OffsetDist = 10f;              //Positive means Z positive direction
+    public float OffsetDist = 1f;              //Positive means Z positive direction
 
     private Mesh _mesh;
     private Vector3[] _vertices;
-
     private List<int> _leftFaceVert;
     private List<int> _rightFaceVert;
+
     private Vector3 _targetVect;
+    private int _numVerts = 0;
 
     private float _maxZ, _minZ = 0f;
 
 	// Use this for initialization
 	void Start () 
     {
+        Debug.Log(GetComponent<Renderer>().bounds.size);
         
-        DebugCurrentMesh();
+//        DebugCurrentMesh();
+
+//        AnimateLeftFace(100f, 0f);
+//        AnimateRightFace(50f, 0f);
+
+//        ResetCurrentMeshParameters();
 	
 	}
 
-    void DebugCurrentMesh()
+    public void ResetCurrentMeshParameters()
+    {
+        _leftFaceVert.Clear();
+        _rightFaceVert.Clear();       
+
+    }
+
+    public void DebugCurrentMesh()
     {
         Mesh cubeMesh = GetComponent<MeshFilter>().mesh;
 
         Vector3[] cubeVertices = cubeMesh.vertices;
+        _numVerts = cubeVertices.Length;
         int[] cubeTriangles = cubeMesh.triangles;
         Vector3[] cubeNormals = cubeMesh.normals;
         Vector2[] cubeUvs = cubeMesh.uv;
@@ -65,7 +80,7 @@ public class VertexAnimation : MonoBehaviour
         float[] zValues = new float[cubeVertices.Length];
 
         int zInd;
-        for (zInd = 0; zInd < zValues.Length; zInd++)
+        for (zInd = 0; zInd < _numVerts; zInd++)
         {
             zValues[zInd] = cubeVertices[zInd].z;
         }
@@ -81,7 +96,7 @@ public class VertexAnimation : MonoBehaviour
         _leftFaceVert = new List<int>();
         _rightFaceVert = new List<int>();
 
-        for (zInd = 0; zInd < zValues.Length; zInd++)
+        for (zInd = 0; zInd < _numVerts; zInd++)
         {
             if (zValues[zInd] == _minZ) 
             {
@@ -100,27 +115,20 @@ public class VertexAnimation : MonoBehaviour
 //        {
 //            Debug.Log("Index: "+_animVertsInd[n]);
 //
-//        }
-
-//        AnimateLeftFace();
-        AnimateRightFace();
-
-
-
-     
+//        }     
     }
 
-    public void AnimateLeftFace()
+    public void AnimateLeftFace(float animTime, float delay)
     {
         float targetZ = 0f;  
         targetZ = _minZ + OffsetDist;       
 
         Debug.Log("TargetZ: "+targetZ);
         
-        LeanTween.value(_minZ, targetZ, 10f).setOnUpdate((float val) => 
+        LeanTween.value(_minZ, targetZ, animTime).setOnUpdate((float val) => 
         {
             UpdateLeftFaceInZ(val);
-        });
+            }).setDelay(delay).setOnComplete(ResetCurrentMeshParameters);
 
     }
         
@@ -145,17 +153,17 @@ public class VertexAnimation : MonoBehaviour
         _mesh.vertices = _vertices;
     }
 
-    public void AnimateRightFace()
+    public void AnimateRightFace(float animTime, float delay)
     {
         float targetZ = 0f;  
         targetZ = _maxZ + OffsetDist;       
 
         Debug.Log("TargetZ: "+targetZ);
 
-        LeanTween.value(_maxZ, targetZ, 10f).setOnUpdate((float val) => 
+        LeanTween.value(_maxZ, targetZ, animTime).setDelay(delay).setOnUpdate((float val) => 
             {
                 UpdateRightFaceInZ(val);
-            });
+            }).setOnComplete(ResetCurrentMeshParameters);;
 
     }
 
