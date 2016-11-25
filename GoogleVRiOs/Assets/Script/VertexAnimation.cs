@@ -8,10 +8,15 @@ public class VertexAnimation : MonoBehaviour
 
     private Mesh _mesh;
     private Vector3[] _vertices;
+
     private List<int> _leftFaceVert;
     private List<int> _rightFaceVert;
 
     private List<int> _topFaceVert;
+    private List<int> _bottomeFaceVert;
+
+    private List<int> _frontFaceVert;
+    private List<int> _backFaceVert;
 
     private Vector3 _targetVect;
     private int _numVerts = 0;
@@ -23,15 +28,20 @@ public class VertexAnimation : MonoBehaviour
 	// Use this for initialization
 	void Start () 
     {
-        Debug.Log(GetComponent<Renderer>().bounds.size);
         
 //        DebugCurrentMesh();
+//        AnimateFrontFace(1,0);
+//        AnimateBackFace(1,0);
 
-//        AnimateLeftFace(100f, 0f);
-//        AnimateRightFace(50f, 0f);
+//        AnimateLeftFace(1f, 0f);
+//        AnimateRightFace(2f, 0f);
 
 //        ResetCurrentMeshParameters();
-        AnimateTopFace(1f, 0f);
+//        AnimateTopFace(1f, 0f);
+
+//        AnimateColor();
+
+
 	
 	}
 
@@ -90,7 +100,7 @@ public class VertexAnimation : MonoBehaviour
         for (ind = 0; ind < _numVerts; ind++)
         {
             xValues[ind] = cubeVertices[ind].x;
-            yValues[ind] = cubeVertices[ind].x;
+            yValues[ind] = cubeVertices[ind].y;
             zValues[ind] = cubeVertices[ind].z;
         }
 
@@ -103,17 +113,39 @@ public class VertexAnimation : MonoBehaviour
         _maxZ = Mathf.Max(zValues);
         _minZ = Mathf.Min(zValues);
 
-        Debug.Log("maxZ: "+_maxZ);
-        Debug.Log("minZ: "+_minZ);
-
 
         //Capture index of vertices that are going to be animated
         _leftFaceVert = new List<int>();
         _rightFaceVert = new List<int>();
+
         _topFaceVert = new List<int>();
+        _bottomeFaceVert = new List<int>();
+
+        _frontFaceVert = new List<int>();
+        _backFaceVert = new List<int>();
 
         for (ind = 0; ind < _numVerts; ind++)
         {
+            if (xValues[ind] == _minX)
+            {
+                _backFaceVert.Add(ind);
+            }
+
+            if(xValues[ind] == _maxX)
+            {
+                _frontFaceVert.Add(ind);
+            }
+
+            if(yValues[ind] == _minY)
+            {
+                _bottomeFaceVert.Add(ind);
+            }
+
+            if(yValues[ind] == _maxY)
+            {
+                _topFaceVert.Add(ind);
+            }
+
             if (zValues[ind] == _minZ) 
             {
                 _leftFaceVert.Add(ind);
@@ -124,10 +156,6 @@ public class VertexAnimation : MonoBehaviour
                 _rightFaceVert.Add(ind);
             }
 
-            if(yValues[ind] == _maxY)
-            {
-                _topFaceVert.Add(ind);
-            }
                 
         }
 
@@ -160,9 +188,9 @@ public class VertexAnimation : MonoBehaviour
             {
                 UpdateLeftFaceInZ(val);
             }).setDelay(delay).setOnComplete( () =>
-                {
-                    callBackAction();
+                {                    
                     ResetCurrentMeshParameters();
+                    callBackAction();
 
                 });
 
@@ -194,12 +222,12 @@ public class VertexAnimation : MonoBehaviour
         float targetZ = 0f;  
         targetZ = _maxZ + OffsetDist;       
 
-        Debug.Log("TargetZ: "+targetZ);
+//        Debug.Log("TargetZ: "+targetZ);
 
         LeanTween.value(_maxZ, targetZ, animTime).setDelay(delay).setOnUpdate((float val) => 
             {
                 UpdateRightFaceInZ(val);
-            }).setOnComplete(ResetCurrentMeshParameters);;
+            }).setOnComplete(ResetCurrentMeshParameters);
 
     }
 
@@ -208,7 +236,7 @@ public class VertexAnimation : MonoBehaviour
         float targetZ = 0f;  
         targetZ = _maxZ + OffsetDist;       
 
-        Debug.Log("TargetZ: "+targetZ);
+//        Debug.Log("TargetZ: "+targetZ);
 
         LeanTween.value(_maxZ, targetZ, animTime).setDelay(delay).setOnUpdate((float val) => 
             {
@@ -217,6 +245,7 @@ public class VertexAnimation : MonoBehaviour
                 {
                     callBackAction();
                     ResetCurrentMeshParameters();
+
                 });
 
     }
@@ -249,16 +278,15 @@ public class VertexAnimation : MonoBehaviour
         float targetY = 0f;  
         targetY = _maxY + OffsetDist;       
 
-
         LeanTween.value(_maxY, targetY, animTime).setDelay(delay).setOnUpdate((float val) => 
             {
                 UpdateTopFaceInY(val);
-            }).setOnComplete(ResetCurrentMeshParameters);;
+            });
 
     }
 
 
-    //+ Z means modifying mesh in positive Z direction
+    //+ Y means modifying mesh in positive Z direction
     void UpdateTopFaceInY(float updatedVal)
     {
         _mesh = GetComponent<MeshFilter>().mesh;
@@ -268,14 +296,121 @@ public class VertexAnimation : MonoBehaviour
         int index;
         while (i < _topFaceVert.Count) 
         {
+
             index = _topFaceVert[i];
             _targetVect = _vertices[index];
-            _targetVect.z = updatedVal;
+            _targetVect.y = updatedVal;
             _vertices[index] = _targetVect;
             i++;
         }
 
         _mesh.vertices = _vertices;
+    }
+
+    //Y ANIMATION FUNCTIONS
+    public void AnimateFrontFace(float animTime, float delay)
+    {
+        float targetX = 0f;  
+        targetX = _maxX + OffsetDist;       
+
+        LeanTween.value(_maxX, targetX, animTime).setDelay(delay).setOnUpdate((float val) => 
+            {
+                UpdateFrontFaceInX(val);
+            }).setOnComplete(ResetCurrentMeshParameters);
+
+    }
+
+
+    //+ X means modifying mesh in positive Z direction
+    void UpdateFrontFaceInX(float updatedVal)
+    {
+        _mesh = GetComponent<MeshFilter>().mesh;
+        _vertices = _mesh.vertices;
+
+        int i = 0;
+        int index;
+        while (i < _frontFaceVert.Count) 
+        {
+
+            index = _frontFaceVert[i];
+            _targetVect = _vertices[index];
+            _targetVect.x = updatedVal;
+            _vertices[index] = _targetVect;
+            i++;
+        }
+
+        _mesh.vertices = _vertices;
+    }
+
+    public void AnimateBackFace(float animTime, float delay)
+    {
+        float targetX = 0f;  
+        targetX = _minX + OffsetDist;       
+
+        LeanTween.value(_minX, targetX, animTime).setDelay(delay).setOnUpdate((float val) => 
+            {
+                UpdateBackFaceInX(val);
+            }).setOnComplete(ResetCurrentMeshParameters);
+
+    }
+
+
+    //+ X means modifying mesh in positive Z direction
+    void UpdateBackFaceInX(float updatedVal)
+    {
+        _mesh = GetComponent<MeshFilter>().mesh;
+        _vertices = _mesh.vertices;
+
+        int i = 0;
+        int index;
+        while (i < _backFaceVert.Count) 
+        {
+
+            index = _backFaceVert[i];
+            _targetVect = _vertices[index];
+            _targetVect.x = updatedVal;
+            _vertices[index] = _targetVect;
+            i++;
+        }
+
+        _mesh.vertices = _vertices;
+    }
+
+
+    void AnimateColor()
+    {
+//        MeshFilter viewedModelFilter = (MeshFilter)GetComponent("MeshFilter");
+//        Mesh mesh = viewedModelFilter.mesh;
+//        Color[] colors = new Color[mesh.vertices.Length];
+//        Color BottomColor = Color.red;
+//        Color TopColor = Color.blue;
+//        colors[0] = BottomColor;
+//        colors[1] = TopColor;
+//        colors[2] = BottomColor;
+//        colors[3] = TopColor;
+//        mesh.colors = colors;
+//
+        _mesh = GetComponent<MeshFilter>().mesh;
+        _vertices = _mesh.vertices;
+        Color[] meshColors = new Color[_mesh.vertices.Length];
+
+
+
+        int index;
+        for (int i=0; i< _topFaceVert.Count; i++)
+        {
+            index = _topFaceVert[i];
+            meshColors[index] = Color.red;
+            
+        }
+
+        for (int j=0; j < _bottomeFaceVert.Count; j++)
+        {
+            index = _bottomeFaceVert[j];
+            meshColors[index] = Color.blue;
+        }
+
+        _mesh.colors = meshColors;
     }
 
 

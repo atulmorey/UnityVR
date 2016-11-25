@@ -24,7 +24,7 @@ public class Teleport : MonoBehaviour, IGvrGazeResponder
     private Vector3 _cubeStartingPos;
     private Quaternion _cubeStartingRot;
     private Vector3 _mainCamStartingPos;
-    private float _portSpeed = 5f;
+    private float _portSpeed = 50f;
     private int _rotateTweenId;
     private int _scaleTweenId;
 
@@ -88,10 +88,13 @@ public class Teleport : MonoBehaviour, IGvrGazeResponder
         //Once complete, do the trigger
 
         Material thisMat = gameObject.GetComponent<Renderer>().material;
+
         if (gazedAt)
         {
             //Cancel tweens
-            LeanTween.cancel(gameObject);       
+            LeanTween.cancel(gameObject);    
+
+            gameObject.SetActive(false);
 
             //Animate the emission on the material for 2 seconds
             thisMat.EnableKeyword("_EMISSION");
@@ -141,15 +144,15 @@ public class Teleport : MonoBehaviour, IGvrGazeResponder
 //        DisableThisGameobject();
 
         //Option 1: Animate
-//        LeanTween.move(MainCamera, transform.position, time).setOnComplete(SetVisualEffect);
+        LeanTween.move(MainCamera, transform.position, time).setOnComplete(SetVisualEffect);
 
         //Option 2: just teleport
 //        MainCamera.transform.position = transform.position;
 
 
         //Option 3: Camera Fade
-        _camFadeTime = time / 2f;
-        LeanTween.move(MainCamera, transform.position, time).setOnStart(FadeIn).setOnComplete(FadeIn);
+//        _camFadeTime = time / 2f;
+//        LeanTween.move(MainCamera, transform.position, time).setOnStart(FadeIn).setOnComplete(FadeIn);
 
 
 

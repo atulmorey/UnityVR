@@ -7,24 +7,26 @@ public class NANDStorySequence : MonoBehaviour
     [Header("Transforms")]
     public Transform Half1;
     public Transform Half2;
+    public Transform StructureParent;
     public Transform CamFirstCutPos;
+    public Transform CamSecondCutPos;
+    public Transform CamThirdCutPos;
+    public Transform CamForthCutPos;
 
     [Header("GameObjects")]
     public GameObject MainCamera;
     public GameObject OneLayer;
-    public GameObject ChannelHolesHalf;
+    public GameObject ChannelHoleCylinder;
+    public GameObject Teleport;
 
     [Header("Materials")]
-    public Material SiliconSubstrateMat1;
-    public Material SiliconSubstrateMat2;
-    public Material OxideMat1;
-    public Material OxideMat2;
-    public Material NitrideMat1;
-    public Material NitrideMat2;
-    public Material ChannelHardMaskMat1;
-    public Material ChannelHardMaskMat2;
-    public Material ChennelHolesMat;
+    public Material SiliconSubstrateMat;
+    public Material OxideMat;
+    public Material NitrideMat;
+    public Material ChannelHardMaskMat;
+    public Material ChannelHolesMat;
     public Material StaircaseHardMaskMat;
+    public Material TrenchHardMaskMat;
 
     [Header("Values")]
     public int NumberOfLayers = 32;
@@ -34,290 +36,241 @@ public class NANDStorySequence : MonoBehaviour
     public float SiliconSubtrateThickness = 1.7f;
     public float OxideThickness = 0.3f;
     public float NitrideThickness = 0.3f;
-    public float StairCaseHardMaskThickness = 5f;
     public float StairCaseStepWidth = 0.25f;
+    public float StairCaseHardMaskThickness = 50f;
+    public float ChannelHoleCylinderDia = 1.2f;
+    public float ChannelHoleHardMaskThickness = 25f;
+    public float TrenchHardMaskThickness = 25f;
 
     //private
-    private GameObject _siliconSubstrate1;
-    private GameObject[] _oxideLayers1;
-    private GameObject[] _nitrideLayers1;
+    private GameObject _siliconSubstrate;
+    private GameObject[] _oxideLayers;
+    private GameObject[] _nitrideLayers;
     private GameObject _hardMaskLayer1;
-    private GameObject _channelHoles1;
     private GameObject _staircaseHardMask1;
+    private GameObject _channelHolesCylndrs1;
+    private GameObject _trenchHardMask1;
+    private GameObject _frontHalf1;
+    private GameObject _middleHalf1;
+    private GameObject _backHalf1;
 
-    private GameObject _siliconSubstrate2;
+//    private GameObject _siliconSubstrate2;
     private GameObject[] _oxideLayers2;
     private GameObject[] _nitrideLayers2;
     private GameObject _hardMaskLayer2;
-    private GameObject _channelHoles2;
-    private GameObject _staircaseHardMask2;
+    private GameObject _channelHoleMask;
+    private GameObject _staircaseHardMask;
+    private GameObject _channelHoleCylndr;
+    private GameObject _channelHoleClndrParent;
+    private GameObject _trenchHardMask2;
+    private GameObject _frontHalf2;
+    private GameObject _middleHalf2;
+    private GameObject _backHalf2;
 
 
     private Vector3 _animStartPos = new Vector3 (0,1000,0);
-    private float _halfWidth;
 
     float layerOffsetDistanceY = 1.6f; //Offset distance between Oxide and Nitride layer
 
     //animTimes
-    private float _siSubAnimTime = 0.1f;
+    private float _siSubAnimTime = 0f;
     private float _oxNiAnimTime = 0.1f;
-    private float _stairCaseHardMaskAnimTime = 0.1f;
-    private float _staircaseHardmaskAnimTime = 1f;
-    private float _stairFormAnimTime = 0.1f;
+    private float _stairCaseHardMaskAnimTime = 0.5f;
+    private float _stairFormAnimTime = 1f;
+    private float _channelHoleHardMaskAnimTime = 1f;
+    private float _channelHoleCylinderDepositAnimTime = 2f;
+    private float _channelHoleEtchAnimTime = 2f;
+    private float _trenchHardMaskAnimTime = 2f;
+    private float _trenchMaskFadeTime = 7f;
+    private float _trenchFormAnimTime = 7f;
 
+    //distances
     private float _targetY = 0f;
+    private float _staircaseHardMaskYoffset = 0f;
 
-    private VertexAnimation _staircaseHardMaskVertAnimComp1;
-    private VertexAnimation _staircaseHardMaskVertAnimComp2;
-
-    private VertexAnimation[] _oxideVertexComp1;
-    private VertexAnimation[] _oxideVertexComp2;
-
-    private VertexAnimation[] _nitrideVertexComp1;
-    private VertexAnimation[] _nitrideVertexComp2;
-
+    private VertexAnimation _staircaseHardMaskVertAnimComp;
+    private VertexAnimation[] _oxideVertexComp;
+    private VertexAnimation[] _nitrideVertexComp;
 
     float delay = 0.1f; //Keep if equal to animtime as a start
+    float scaleOffset = 1f;
 
-	// Use this for initialization
-	void Start () 
+    // Use this for initialization
+    void Start () 
     {
-        _halfWidth = MasterWidth / 2f;
+        Teleport.SetActive(false);
+//        DepostiSiliconSubstrate();
 
-        //Place first half and second half transform
-        Half1.transform.localPosition = new Vector3 (0,0, -_halfWidth/2f);
-        Half2.transform.localPosition = new Vector3 (0,0, _halfWidth/2f);
-
-//        LaySiliconSubstrate();
-        DepostiSiliconSubstrate();
-	
-	}
+        DepositChannelHoleCylinders();
+    
+    }
 
     void DepostiSiliconSubstrate()
     {
         //Silicon substrate
         _targetY = SiliconSubtrateThickness / 2f;
 
-        //FIRST HALF
-        _siliconSubstrate1 = GameObject.Instantiate(OneLayer);
-        _siliconSubstrate1.name = "SiliconSubstrate";
-        _siliconSubstrate1.transform.parent = Half1;   
-        _siliconSubstrate1.transform.localScale = new Vector3(MasterDepth,SiliconSubtrateThickness,_halfWidth);
-        _siliconSubstrate1.GetComponent<Renderer>().material = SiliconSubstrateMat1;
+        _siliconSubstrate = GameObject.Instantiate(OneLayer);
+        _siliconSubstrate.name = "SiliconSubstrate";
+        _siliconSubstrate.transform.parent = StructureParent;
+        _siliconSubstrate.transform.localScale = new Vector3(MasterDepth,SiliconSubtrateThickness,MasterWidth);
 
-        _siliconSubstrate1.transform.localPosition = _animStartPos;
+        _siliconSubstrate.GetComponent<Renderer>().material = SiliconSubstrateMat;
 
-        LeanTween.moveLocalY (_siliconSubstrate1, _targetY, _siSubAnimTime);
+        _siliconSubstrate.transform.localPosition = _animStartPos;
 
-        //FIRST HALF
-        _siliconSubstrate2 = GameObject.Instantiate(OneLayer);
-        _siliconSubstrate2.name = "SiliconSubstrate";
-        _siliconSubstrate2.transform.parent = Half2;   
-        _siliconSubstrate2.transform.localScale = new Vector3(MasterDepth,SiliconSubtrateThickness,_halfWidth);
-        _siliconSubstrate2.GetComponent<Renderer>().material = SiliconSubstrateMat2;
-
-        _siliconSubstrate2.transform.localPosition = _animStartPos;
-
-        LeanTween.moveLocalY (_siliconSubstrate2, _targetY, _siSubAnimTime).setOnComplete(DepositeOxideNitrideLayers);
-
+        LeanTween.moveLocalY (_siliconSubstrate, _targetY, _siSubAnimTime).setOnComplete(DepositeOxideNitrideLayers);
     }
 
     void DepositeOxideNitrideLayers()
     {
-        _oxideLayers1 = new GameObject[NumberOfLayers];
-        _nitrideLayers1 = new GameObject[NumberOfLayers];
-        _oxideLayers2 = new GameObject[NumberOfLayers];
-        _nitrideLayers2 = new GameObject[NumberOfLayers];
+        _oxideLayers = new GameObject[NumberOfLayers];
+        _nitrideLayers = new GameObject[NumberOfLayers];
+
 
         delay = 0f;
 
         for(int i=0; i < NumberOfLayers; i++)
         {
-            //Oxide Half1
-            _oxideLayers1[i] = GameObject.Instantiate(OneLayer);
-            _oxideLayers1[i].name = "OxideLayer"+i.ToString();
-            _oxideLayers1[i].transform.parent = Half1;   
-            _oxideLayers1[i].transform.localScale = new Vector3(MasterDepth, OxideThickness,_halfWidth);
-            _oxideLayers1[i].GetComponent<Renderer>().material = OxideMat1;
-            _oxideLayers1[i].transform.localPosition = _animStartPos;
+            //Oxide
+            _oxideLayers[i] = GameObject.Instantiate(OneLayer);
+            _oxideLayers[i].name = "OxideLayer"+i.ToString();
+            _oxideLayers[i].transform.parent = StructureParent;   
+            _oxideLayers[i].transform.localScale = new Vector3(MasterDepth, OxideThickness, MasterWidth);
+            _oxideLayers[i].GetComponent<Renderer>().material = OxideMat;
+            _oxideLayers[i].transform.localPosition = _animStartPos;
 
-            _oxideLayers2[i] = GameObject.Instantiate(OneLayer);
-            _oxideLayers2[i].name = "OxideLayer"+i.ToString();
-            _oxideLayers2[i].transform.parent = Half2;   
-            _oxideLayers2[i].transform.localScale = new Vector3(MasterDepth, OxideThickness,_halfWidth);
-            _oxideLayers2[i].GetComponent<Renderer>().material = OxideMat2;
-            _oxideLayers2[i].transform.localPosition = _animStartPos;
       
             _targetY = SiliconSubtrateThickness + (NitrideThickness * i) + (OxideThickness * i ) + (OxideThickness / 2f)  ;
-            LeanTween.moveLocalY (_oxideLayers1[i], _targetY, _oxNiAnimTime).setDelay(delay);
-            LeanTween.moveLocalY (_oxideLayers2[i], _targetY, _oxNiAnimTime).setDelay(delay);
+            LeanTween.moveLocalY (_oxideLayers[i], _targetY, _oxNiAnimTime).setDelay(delay);
 
             delay += _oxNiAnimTime;
 
-            //Nitride Half1
-            _nitrideLayers1[i] = GameObject.Instantiate(OneLayer);
-            _nitrideLayers1[i].name = "NitrideLayer"+i.ToString();
-            _nitrideLayers1[i].transform.parent = Half1;
-            _nitrideLayers1[i].transform.localScale = new Vector3(MasterDepth, NitrideThickness,_halfWidth);
-            _nitrideLayers1[i].GetComponent<Renderer>().material = NitrideMat1;
-            _nitrideLayers1[i].transform.localPosition = _animStartPos;
+            //Nitride
+            _nitrideLayers[i] = GameObject.Instantiate(OneLayer);
+            _nitrideLayers[i].name = "NitrideLayer"+i.ToString();
+            _nitrideLayers[i].transform.parent = StructureParent;
+            _nitrideLayers[i].transform.localScale = new Vector3(MasterDepth, NitrideThickness,MasterWidth);
+            _nitrideLayers[i].GetComponent<Renderer>().material = NitrideMat;
+            _nitrideLayers[i].transform.localPosition = _animStartPos;
 
-            _nitrideLayers2[i] = GameObject.Instantiate(OneLayer);
-            _nitrideLayers2[i].name = "NitrideLayer"+i.ToString();
-            _nitrideLayers2[i].transform.parent = Half2;
-            _nitrideLayers2[i].transform.localScale = new Vector3(MasterDepth, NitrideThickness,_halfWidth);
-            _nitrideLayers2[i].GetComponent<Renderer>().material = NitrideMat2;
-            _nitrideLayers2[i].transform.localPosition = _animStartPos;
 
             _targetY = SiliconSubtrateThickness + (NitrideThickness * i) + (OxideThickness* (i + 1)) + + (NitrideThickness / 2f) ;
-            LeanTween.moveLocalY (_nitrideLayers1[i], _targetY, _oxNiAnimTime).setDelay(delay);
+
 
             //Trigger next event when reached last layer
             if ( i == NumberOfLayers-1)
             {
-                LeanTween.moveLocalY (_nitrideLayers2[i], _targetY, _oxNiAnimTime).setDelay(delay).setOnComplete(DepositStairCaseHardMask);
+                LeanTween.moveLocalY (_nitrideLayers[i], _targetY, _oxNiAnimTime).setDelay(delay).setOnComplete(DepositStairCaseHardMask);
             }
             else
             {
-                LeanTween.moveLocalY (_nitrideLayers2[i], _targetY, _oxNiAnimTime).setDelay(delay);
+                LeanTween.moveLocalY (_nitrideLayers[i], _targetY, _oxNiAnimTime).setDelay(delay);
             }
 
             delay += _oxNiAnimTime;
 
         }
     }
+        
 
     void DepositStairCaseHardMask()
     {
+        //Camera Tween
+//        LeanTween.move(MainCamera, CamFirstCutPos.position, 2f).setEase(LeanTweenType.easeInCubic);
+
         _targetY = SiliconSubtrateThickness + (NumberOfLayers * OxideThickness) + (NumberOfLayers * NitrideThickness) + (StairCaseHardMaskThickness / 2f);
+     
+        _staircaseHardMask = GameObject.Instantiate(OneLayer);
+        _staircaseHardMask.name = "StaircaseHardMask";
+        _staircaseHardMask.transform.parent = StructureParent;
+        _staircaseHardMask.transform.localScale = new Vector3(MasterDepth, StairCaseHardMaskThickness, MasterWidth);
+        _staircaseHardMask.GetComponent<Renderer>().material = StaircaseHardMaskMat;
+        _staircaseHardMask.transform.localPosition = _animStartPos;       
 
-        //FIRST HALF
-        _staircaseHardMask1 = GameObject.Instantiate(OneLayer);
-        _staircaseHardMask1.name = "StaircaseHardMask";
-        _staircaseHardMask1.transform.parent = Half1;
-        _staircaseHardMask1.transform.localScale = new Vector3(MasterDepth, StairCaseHardMaskThickness, _halfWidth);
-        _staircaseHardMask1.GetComponent<Renderer>().material = StaircaseHardMaskMat;
-        _staircaseHardMask1.transform.localPosition = _animStartPos;       
-        LeanTween.moveLocalY (_staircaseHardMask1, _targetY, _stairCaseHardMaskAnimTime); 
-
-        //Second HALF
-        _staircaseHardMask2 = GameObject.Instantiate(OneLayer);
-        _staircaseHardMask2.name = "StaircaseHardMask";
-        _staircaseHardMask2.transform.parent = Half2;
-        _staircaseHardMask2.transform.localScale = new Vector3(MasterDepth, StairCaseHardMaskThickness, _halfWidth);
-        _staircaseHardMask2.GetComponent<Renderer>().material = StaircaseHardMaskMat;
-        _staircaseHardMask2.transform.localPosition = _animStartPos;       
-        LeanTween.moveLocalY (_staircaseHardMask2, _targetY, _stairCaseHardMaskAnimTime).setOnComplete(BeginStaircaseFormation);
+        LeanTween.moveLocalY (_staircaseHardMask, _targetY, _stairCaseHardMaskAnimTime).setOnComplete(BeginStaircaseFormation);
 
     }
 
+    #region StairCaseFormation
+
     void BeginStaircaseFormation()
     {
-        _staircaseHardMaskVertAnimComp1 = _staircaseHardMask1.GetComponent<VertexAnimation>();
-        _staircaseHardMaskVertAnimComp2 = _staircaseHardMask2.GetComponent<VertexAnimation>();
+        _staircaseHardMaskVertAnimComp = _staircaseHardMask.GetComponent<VertexAnimation>();
 
-        _oxideVertexComp1 = new VertexAnimation[NumberOfLayers];
-        _oxideVertexComp2 = new VertexAnimation[NumberOfLayers];
+        _oxideVertexComp = new VertexAnimation[NumberOfLayers];
+        _nitrideVertexComp = new VertexAnimation[NumberOfLayers];
 
-        _nitrideVertexComp1 = new VertexAnimation[NumberOfLayers];
-        _nitrideVertexComp2 = new VertexAnimation[NumberOfLayers];
+        _staircaseHardMaskYoffset = 1f / NumberOfLayers;
 
         for (int i=0; i < NumberOfLayers; i++)
         {
-            _oxideVertexComp1[i] = _oxideLayers1[i].GetComponent<VertexAnimation>();
-            _oxideVertexComp2[i] = _oxideLayers2[i].GetComponent<VertexAnimation>();
-
-            _nitrideVertexComp1[i] = _nitrideLayers1[i].GetComponent<VertexAnimation>();
-            _nitrideVertexComp2[i] = _nitrideLayers2[i].GetComponent<VertexAnimation>();
+            _oxideVertexComp[i] = _oxideLayers[i].GetComponent<VertexAnimation>();
+            _nitrideVertexComp[i] = _nitrideLayers[i].GetComponent<VertexAnimation>();
         }
 
-        //staircase hardmask 1
-        _staircaseHardMaskVertAnimComp1.OffsetDist = StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp1.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp1.AnimateLeftFace(_stairFormAnimTime, 0f);
-
         //staircase hardmask 2
-        _staircaseHardMaskVertAnimComp2.OffsetDist = -StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp2.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp2.AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair1);
+        _staircaseHardMaskVertAnimComp.OffsetDist = StairCaseStepWidth;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateLeftFaceWithCallBack(_stairFormAnimTime, 1f, TriggerOxNiStair1);
     }   
 
     void TriggerOxNiStair1()
     {
         int passNum = 1;
 
-         //Oxide
-        //1
-        _oxideVertexComp1[NumberOfLayers - 1].OffsetDist = StairCaseStepWidth;
-        _oxideVertexComp1[NumberOfLayers - 1].DebugCurrentMesh();
-        _oxideVertexComp1[NumberOfLayers - 1].AnimateLeftFace(_stairFormAnimTime, 0f);
+        //HardMask reduction
+        _staircaseHardMaskVertAnimComp.OffsetDist = -_staircaseHardMaskYoffset;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateTopFace(_stairFormAnimTime,0);
 
-        //2
-        _oxideVertexComp2[NumberOfLayers - 1].OffsetDist = -StairCaseStepWidth;
-        _oxideVertexComp2[NumberOfLayers - 1].DebugCurrentMesh();
-        _oxideVertexComp2[NumberOfLayers - 1].AnimateRightFace(_stairFormAnimTime, 0f);
+        //Oxide
+        _oxideVertexComp[NumberOfLayers - 1].OffsetDist = StairCaseStepWidth;
+        _oxideVertexComp[NumberOfLayers - 1].DebugCurrentMesh();
+        _oxideVertexComp[NumberOfLayers - 1].AnimateLeftFace(_stairFormAnimTime, 0f);
 
         //Nitride
-        //1
-        _nitrideVertexComp1[NumberOfLayers - 1].OffsetDist = StairCaseStepWidth;
-        _nitrideVertexComp1[NumberOfLayers - 1].DebugCurrentMesh();
-        _nitrideVertexComp1[NumberOfLayers - 1].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-        //2
-        _nitrideVertexComp2[NumberOfLayers - 1].OffsetDist = -StairCaseStepWidth;
-        _nitrideVertexComp2[NumberOfLayers - 1].DebugCurrentMesh();
-        _nitrideVertexComp2[NumberOfLayers - 1].AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask2);
+        _nitrideVertexComp[NumberOfLayers - 1].OffsetDist = StairCaseStepWidth;
+        _nitrideVertexComp[NumberOfLayers - 1].DebugCurrentMesh();
+        _nitrideVertexComp[NumberOfLayers - 1].AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask2);
 
     }
 
     void TriggerSiHardMask2()
     {
-        //staircase hardmask 1
-        _staircaseHardMaskVertAnimComp1.OffsetDist = StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp1.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp1.AnimateLeftFace(_stairFormAnimTime, 0f);
-
         //staircase hardmask 2
-        _staircaseHardMaskVertAnimComp2.OffsetDist = -StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp2.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp2.AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair2);
+        _staircaseHardMaskVertAnimComp.OffsetDist = StairCaseStepWidth;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair2);
     }
 
     void TriggerOxNiStair2()
     {
         int passNum = 2;
 
+        //HardMask reduction
+        _staircaseHardMaskVertAnimComp.OffsetDist = -_staircaseHardMaskYoffset;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateTopFace(_stairFormAnimTime,0);
+
         for (int i=1; i<= passNum; i++)
         {
             //Oxide
-            //1
-            _oxideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _oxideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-            //2
-            _oxideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _oxideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+            _oxideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _oxideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
+            _oxideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
 
             //Nitride
-            //1
-            _nitrideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _nitrideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _nitrideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-            
-
-            //2
-            _nitrideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _nitrideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
+            _nitrideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _nitrideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
 
             if (i == passNum)
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask3);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask3);
             }
             else
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
             }
         }
 
@@ -325,52 +278,41 @@ public class NANDStorySequence : MonoBehaviour
 
     void TriggerSiHardMask3()
     {
-        //staircase hardmask 1
-        _staircaseHardMaskVertAnimComp1.OffsetDist = StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp1.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp1.AnimateLeftFace(_stairFormAnimTime, 0f);
+        
 
-        //staircase hardmask 2
-        _staircaseHardMaskVertAnimComp2.OffsetDist = -StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp2.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp2.AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair3);
+        //staircase hardmask
+        _staircaseHardMaskVertAnimComp.OffsetDist = StairCaseStepWidth;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair3);
     }
 
     void TriggerOxNiStair3()
     {
         int passNum = 3;
 
+        //HardMask reduction
+        _staircaseHardMaskVertAnimComp.OffsetDist = -_staircaseHardMaskYoffset;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateTopFace(_stairFormAnimTime,0);
+
         for (int i=1; i<= passNum; i++)
         {
             //Oxide
-            //1
-            _oxideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _oxideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-            //2
-            _oxideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _oxideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+            _oxideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _oxideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
+            _oxideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
 
             //Nitride
-            //1
-            _nitrideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _nitrideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _nitrideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-
-            //2
-            _nitrideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _nitrideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
+            _nitrideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _nitrideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
 
             if (i == passNum)
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask4);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask4);
             }
             else
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
             }
         }
 
@@ -378,15 +320,10 @@ public class NANDStorySequence : MonoBehaviour
 
     void TriggerSiHardMask4()
     {
-        //staircase hardmask 1
-        _staircaseHardMaskVertAnimComp1.OffsetDist = StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp1.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp1.AnimateLeftFace(_stairFormAnimTime, 0f);
-
-        //staircase hardmask 2
-        _staircaseHardMaskVertAnimComp2.OffsetDist = -StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp2.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp2.AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair4);
+        //staircase
+        _staircaseHardMaskVertAnimComp.OffsetDist = StairCaseStepWidth;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair4);
 
     }
 
@@ -394,37 +331,29 @@ public class NANDStorySequence : MonoBehaviour
     {
         int passNum = 4;
 
+        //HardMask reduction
+        _staircaseHardMaskVertAnimComp.OffsetDist = -_staircaseHardMaskYoffset;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateTopFace(_stairFormAnimTime,0);
+
         for (int i=1; i<= passNum; i++)
         {
             //Oxide
-            //1
-            _oxideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _oxideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-            //2
-            _oxideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _oxideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+            _oxideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _oxideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
+            _oxideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
 
             //Nitride
-            //1
-            _nitrideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _nitrideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _nitrideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-
-            //2
-            _nitrideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _nitrideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
+            _nitrideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _nitrideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
 
             if (i == passNum)
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask5);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask5);
             }
             else
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
             }
         }
 
@@ -432,53 +361,41 @@ public class NANDStorySequence : MonoBehaviour
 
     void TriggerSiHardMask5()
     {
-        //staircase hardmask 1
-        _staircaseHardMaskVertAnimComp1.OffsetDist = StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp1.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp1.AnimateLeftFace(_stairFormAnimTime, 0f);
+        _stairFormAnimTime = 0.1f;
 
-        //staircase hardmask 2
-        _staircaseHardMaskVertAnimComp2.OffsetDist = -StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp2.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp2.AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair5);
+        //staircase hardmask
+        _staircaseHardMaskVertAnimComp.OffsetDist = StairCaseStepWidth;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair5);
     }
 
     void TriggerOxNiStair5()
     {
         int passNum = 5;
 
+        //HardMask reduction
+        _staircaseHardMaskVertAnimComp.OffsetDist = -_staircaseHardMaskYoffset;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateTopFace(_stairFormAnimTime,0);
+
         for (int i=1; i<= passNum; i++)
         {
             //Oxide
-            //Oxide
-            //1
-            _oxideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _oxideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-            //2
-            _oxideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _oxideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+            _oxideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _oxideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
+            _oxideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
 
             //Nitride
-            //1
-            _nitrideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _nitrideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _nitrideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-
-            //2
-            _nitrideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _nitrideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
+            _nitrideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _nitrideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
 
             if (i == passNum)
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask6);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask6);
             }
             else
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
             }
         }
 
@@ -486,52 +403,39 @@ public class NANDStorySequence : MonoBehaviour
 
     void TriggerSiHardMask6()
     {
-        //staircase hardmask 1
-        _staircaseHardMaskVertAnimComp1.OffsetDist = StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp1.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp1.AnimateLeftFace(_stairFormAnimTime, 0f);
-
-        //staircase hardmask 2
-        _staircaseHardMaskVertAnimComp2.OffsetDist = -StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp2.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp2.AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair6);
+        //staircase hardmask
+        _staircaseHardMaskVertAnimComp.OffsetDist = StairCaseStepWidth;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair6);
     }
 
     void TriggerOxNiStair6()
     {
         int passNum = 6;
 
+        //HardMask reduction
+        _staircaseHardMaskVertAnimComp.OffsetDist = -_staircaseHardMaskYoffset;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateTopFace(_stairFormAnimTime,0);
+
         for (int i=1; i<= passNum; i++)
         {
             //Oxide
-            //1
-            _oxideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _oxideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-            //2
-            _oxideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _oxideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+            _oxideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _oxideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
+            _oxideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
 
             //Nitride
-            //1
-            _nitrideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _nitrideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _nitrideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-
-            //2
-            _nitrideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _nitrideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
+            _nitrideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _nitrideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
 
             if (i == passNum)
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask7);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask7);
             }
             else
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
             }
         }
 
@@ -539,58 +443,44 @@ public class NANDStorySequence : MonoBehaviour
 
     void TriggerSiHardMask7()
     {
-        //staircase hardmask 1
-        _staircaseHardMaskVertAnimComp1.OffsetDist = StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp1.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp1.AnimateLeftFace(_stairFormAnimTime, 0f);
-
-        //staircase hardmask 2
-        _staircaseHardMaskVertAnimComp2.OffsetDist = -StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp2.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp2.AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair7);
+        //staircase hardmask
+        _staircaseHardMaskVertAnimComp.OffsetDist = StairCaseStepWidth;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair7);
     }
 
     void TriggerOxNiStair7()
     {
         int passNum = 7;
 
+        //HardMask reduction
+        _staircaseHardMaskVertAnimComp.OffsetDist = -_staircaseHardMaskYoffset;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateTopFace(_stairFormAnimTime,0);
+
         for (int i=1; i<= passNum; i++)
         {
             //Oxide
-            //1
-            _oxideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _oxideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-            //2
-            _oxideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _oxideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+            _oxideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _oxideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
+            _oxideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
 
             //Nitride
-            //1
-            _nitrideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _nitrideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _nitrideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-
-            //2
-            _nitrideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _nitrideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
+            _nitrideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _nitrideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
 
             if (i == passNum)
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask8);
-//                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, FinalizeStaircase);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask8);
+//                _nitrideVertexComp2[NumberOfLayers - i].AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, FinalizeStaircase);
             }
             else
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
             }
         }
 
     }
-
 
 /// <summary>
 /// /END OF 8 LAYER STRUCTURE
@@ -598,52 +488,39 @@ public class NANDStorySequence : MonoBehaviour
 
     void TriggerSiHardMask8()
     {
-        //staircase hardmask 1
-        _staircaseHardMaskVertAnimComp1.OffsetDist = StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp1.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp1.AnimateLeftFace(_stairFormAnimTime, 0f);
-
-        //staircase hardmask 2
-        _staircaseHardMaskVertAnimComp2.OffsetDist = -StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp2.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp2.AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair8);
+        //staircase hardmask 
+        _staircaseHardMaskVertAnimComp.OffsetDist = StairCaseStepWidth;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair8);
     }
 
     void TriggerOxNiStair8()
     {
         int passNum = 8;
 
+        //HardMask reduction
+        _staircaseHardMaskVertAnimComp.OffsetDist = -_staircaseHardMaskYoffset;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateTopFace(_stairFormAnimTime,0);
+
         for (int i=1; i<= passNum; i++)
         {
             //Oxide
-            //1
-            _oxideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _oxideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-            //2
-            _oxideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _oxideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+            _oxideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _oxideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
+            _oxideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
 
             //Nitride
-            //1
-            _nitrideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _nitrideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _nitrideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-
-            //2
-            _nitrideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _nitrideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
+            _nitrideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _nitrideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
 
             if (i == passNum)
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask9);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask9);
             }
             else
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
             }
         }
 
@@ -651,52 +528,39 @@ public class NANDStorySequence : MonoBehaviour
 
     void TriggerSiHardMask9()
     {
-        //staircase hardmask 1
-        _staircaseHardMaskVertAnimComp1.OffsetDist = StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp1.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp1.AnimateLeftFace(_stairFormAnimTime, 0f);
-
-        //staircase hardmask 2
-        _staircaseHardMaskVertAnimComp2.OffsetDist = -StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp2.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp2.AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair9);
+        //staircase hardmask 
+        _staircaseHardMaskVertAnimComp.OffsetDist = StairCaseStepWidth;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair9);
     }
 
     void TriggerOxNiStair9()
     {
         int passNum = 9;
 
+        //HardMask reduction
+        _staircaseHardMaskVertAnimComp.OffsetDist = -_staircaseHardMaskYoffset;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateTopFace(_stairFormAnimTime,0);
+
         for (int i=1; i<= passNum; i++)
         {
             //Oxide
-            //1
-            _oxideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _oxideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-            //2
-            _oxideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _oxideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+            _oxideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _oxideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
+            _oxideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
 
             //Nitride
-            //1
-            _nitrideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _nitrideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _nitrideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-
-            //2
-            _nitrideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _nitrideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
+            _nitrideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _nitrideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
 
             if (i == passNum)
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask10);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask10);
             }
             else
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
             }
         }
 
@@ -704,52 +568,39 @@ public class NANDStorySequence : MonoBehaviour
 
     void TriggerSiHardMask10()
     {
-        //staircase hardmask 1
-        _staircaseHardMaskVertAnimComp1.OffsetDist = StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp1.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp1.AnimateLeftFace(_stairFormAnimTime, 0f);
-
-        //staircase hardmask 2
-        _staircaseHardMaskVertAnimComp2.OffsetDist = -StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp2.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp2.AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair10);
+        //staircase hardmask
+        _staircaseHardMaskVertAnimComp.OffsetDist = StairCaseStepWidth;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair10);
     }
 
     void TriggerOxNiStair10()
     {
         int passNum = 10;
 
+        //HardMask reduction
+        _staircaseHardMaskVertAnimComp.OffsetDist = -_staircaseHardMaskYoffset;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateTopFace(_stairFormAnimTime,0);
+
         for (int i=1; i<= passNum; i++)
         {
             //Oxide
-            //1
-            _oxideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _oxideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-            //2
-            _oxideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _oxideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+            _oxideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _oxideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
+            _oxideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
 
             //Nitride
-            //1
-            _nitrideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _nitrideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _nitrideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-
-            //2
-            _nitrideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _nitrideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
+            _nitrideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _nitrideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
 
             if (i == passNum)
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask11);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask11);
             }
             else
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
             }
         }
 
@@ -757,52 +608,39 @@ public class NANDStorySequence : MonoBehaviour
 
     void TriggerSiHardMask11()
     {
-        //staircase hardmask 1
-        _staircaseHardMaskVertAnimComp1.OffsetDist = StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp1.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp1.AnimateLeftFace(_stairFormAnimTime, 0f);
-
-        //staircase hardmask 2
-        _staircaseHardMaskVertAnimComp2.OffsetDist = -StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp2.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp2.AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair11);
+        //staircase hardmask 
+        _staircaseHardMaskVertAnimComp.OffsetDist = StairCaseStepWidth;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair11);
     }
 
     void TriggerOxNiStair11()
     {
         int passNum = 11;
 
+        //HardMask reduction
+        _staircaseHardMaskVertAnimComp.OffsetDist = -_staircaseHardMaskYoffset;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateTopFace(_stairFormAnimTime,0);
+
         for (int i=1; i<= passNum; i++)
         {
             //Oxide
-            //1
-            _oxideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _oxideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-            //2
-            _oxideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _oxideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+            _oxideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _oxideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
+            _oxideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
 
             //Nitride
-            //1
-            _nitrideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _nitrideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _nitrideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-
-            //2
-            _nitrideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _nitrideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
+            _nitrideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _nitrideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
 
             if (i == passNum)
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask12);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask12);
             }
             else
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
             }
         }
 
@@ -810,52 +648,39 @@ public class NANDStorySequence : MonoBehaviour
 
     void TriggerSiHardMask12()
     {
-        //staircase hardmask 1
-        _staircaseHardMaskVertAnimComp1.OffsetDist = StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp1.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp1.AnimateLeftFace(_stairFormAnimTime, 0f);
-
-        //staircase hardmask 2
-        _staircaseHardMaskVertAnimComp2.OffsetDist = -StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp2.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp2.AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair12);
+        //staircase hardmask 
+        _staircaseHardMaskVertAnimComp.OffsetDist = StairCaseStepWidth;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair12);
     }
 
     void TriggerOxNiStair12()
     {
         int passNum = 12;
 
+        //HardMask reduction
+        _staircaseHardMaskVertAnimComp.OffsetDist = -_staircaseHardMaskYoffset;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateTopFace(_stairFormAnimTime,0);
+
         for (int i=1; i<= passNum; i++)
         {
             //Oxide
-            //1
-            _oxideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _oxideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-            //2
-            _oxideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _oxideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+            _oxideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _oxideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
+            _oxideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
 
             //Nitride
-            //1
-            _nitrideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _nitrideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _nitrideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-
-            //2
-            _nitrideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _nitrideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
+            _nitrideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _nitrideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
 
             if (i == passNum)
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask13);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask13);
             }
             else
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
             }
         }
 
@@ -863,52 +688,39 @@ public class NANDStorySequence : MonoBehaviour
 
     void TriggerSiHardMask13()
     {
-        //staircase hardmask 1
-        _staircaseHardMaskVertAnimComp1.OffsetDist = StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp1.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp1.AnimateLeftFace(_stairFormAnimTime, 0f);
-
-        //staircase hardmask 2
-        _staircaseHardMaskVertAnimComp2.OffsetDist = -StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp2.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp2.AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair13);
+        //staircase hardmask
+        _staircaseHardMaskVertAnimComp.OffsetDist = StairCaseStepWidth;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair13);
     }
 
     void TriggerOxNiStair13()
     {
         int passNum = 13;
 
+        //HardMask reduction
+        _staircaseHardMaskVertAnimComp.OffsetDist = -_staircaseHardMaskYoffset;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateTopFace(_stairFormAnimTime,0);
+
         for (int i=1; i<= passNum; i++)
         {
             //Oxide
-            //1
-            _oxideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _oxideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-            //2
-            _oxideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _oxideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+            _oxideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _oxideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
+            _oxideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
 
             //Nitride
-            //1
-            _nitrideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _nitrideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _nitrideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-
-            //2
-            _nitrideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _nitrideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
+            _nitrideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _nitrideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
 
             if (i == passNum)
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask14);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask14);
             }
             else
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
             }
         }
 
@@ -916,52 +728,39 @@ public class NANDStorySequence : MonoBehaviour
 
     void TriggerSiHardMask14()
     {
-        //staircase hardmask 1
-        _staircaseHardMaskVertAnimComp1.OffsetDist = StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp1.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp1.AnimateLeftFace(_stairFormAnimTime, 0f);
-
-        //staircase hardmask 2
-        _staircaseHardMaskVertAnimComp2.OffsetDist = -StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp2.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp2.AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair14);
+        //staircase hardmask
+        _staircaseHardMaskVertAnimComp.OffsetDist = StairCaseStepWidth;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair14);
     }
 
     void TriggerOxNiStair14()
     {
         int passNum = 14;
 
+        //HardMask reduction
+        _staircaseHardMaskVertAnimComp.OffsetDist = -_staircaseHardMaskYoffset;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateTopFace(_stairFormAnimTime,0);
+
         for (int i=1; i<= passNum; i++)
         {
             //Oxide
-            //1
-            _oxideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _oxideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-            //2
-            _oxideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _oxideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+            _oxideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _oxideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
+            _oxideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
 
             //Nitride
-            //1
-            _nitrideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _nitrideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _nitrideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-
-            //2
-            _nitrideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _nitrideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
+            _nitrideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _nitrideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
 
             if (i == passNum)
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask15);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask15);
             }
             else
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
             }
         }
 
@@ -969,52 +768,39 @@ public class NANDStorySequence : MonoBehaviour
 
     void TriggerSiHardMask15()
     {
-        //staircase hardmask 1
-        _staircaseHardMaskVertAnimComp1.OffsetDist = StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp1.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp1.AnimateLeftFace(_stairFormAnimTime, 0f);
-
-        //staircase hardmask 2
-        _staircaseHardMaskVertAnimComp2.OffsetDist = -StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp2.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp2.AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair15);
+        //staircase hardmask 
+        _staircaseHardMaskVertAnimComp.OffsetDist = StairCaseStepWidth;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair15);
     }
 
     void TriggerOxNiStair15()
     {
         int passNum = 15;
 
+        //HardMask reduction
+        _staircaseHardMaskVertAnimComp.OffsetDist = -_staircaseHardMaskYoffset;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateTopFace(_stairFormAnimTime,0);
+
         for (int i=1; i<= passNum; i++)
         {
             //Oxide
-            //1
-            _oxideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _oxideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-            //2
-            _oxideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _oxideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+            _oxideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _oxideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
+            _oxideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
 
             //Nitride
-            //1
-            _nitrideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _nitrideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _nitrideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-
-            //2
-            _nitrideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _nitrideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
+            _nitrideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _nitrideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
 
             if (i == passNum)
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask16);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask16);
             }
             else
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
             }
         }
 
@@ -1022,52 +808,39 @@ public class NANDStorySequence : MonoBehaviour
 
     void TriggerSiHardMask16()
     {
-        //staircase hardmask 1
-        _staircaseHardMaskVertAnimComp1.OffsetDist = StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp1.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp1.AnimateLeftFace(_stairFormAnimTime, 0f);
-
-        //staircase hardmask 2
-        _staircaseHardMaskVertAnimComp2.OffsetDist = -StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp2.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp2.AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair16);
+        //staircase hardmask 
+        _staircaseHardMaskVertAnimComp.OffsetDist = StairCaseStepWidth;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair16);
     }
 
     void TriggerOxNiStair16()
     {
         int passNum = 16;
 
+        //HardMask reduction
+        _staircaseHardMaskVertAnimComp.OffsetDist = -_staircaseHardMaskYoffset;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateTopFace(_stairFormAnimTime,0);
+
         for (int i=1; i<= passNum; i++)
         {
             //Oxide
-            //1
-            _oxideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _oxideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-            //2
-            _oxideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _oxideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+            _oxideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _oxideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
+            _oxideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
 
             //Nitride
-            //1
-            _nitrideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _nitrideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _nitrideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-
-            //2
-            _nitrideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _nitrideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
+            _nitrideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _nitrideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
 
             if (i == passNum)
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask17);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask17);
             }
             else
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
             }
         }
 
@@ -1075,52 +848,39 @@ public class NANDStorySequence : MonoBehaviour
 
     void TriggerSiHardMask17()
     {
-        //staircase hardmask 1
-        _staircaseHardMaskVertAnimComp1.OffsetDist = StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp1.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp1.AnimateLeftFace(_stairFormAnimTime, 0f);
-
-        //staircase hardmask 2
-        _staircaseHardMaskVertAnimComp2.OffsetDist = -StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp2.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp2.AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair17);
+        //staircase hardmask
+        _staircaseHardMaskVertAnimComp.OffsetDist = StairCaseStepWidth;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair17);
     }
 
     void TriggerOxNiStair17()
     {
         int passNum = 17;
 
+        //HardMask reduction
+        _staircaseHardMaskVertAnimComp.OffsetDist = -_staircaseHardMaskYoffset;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateTopFace(_stairFormAnimTime,0);
+
         for (int i=1; i<= passNum; i++)
         {
             //Oxide
-            //1
-            _oxideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _oxideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-            //2
-            _oxideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _oxideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+            _oxideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _oxideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
+            _oxideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
 
             //Nitride
-            //1
-            _nitrideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _nitrideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _nitrideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-
-            //2
-            _nitrideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _nitrideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
+            _nitrideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _nitrideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
 
             if (i == passNum)
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask18);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask18);
             }
             else
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
             }
         }
 
@@ -1128,52 +888,39 @@ public class NANDStorySequence : MonoBehaviour
 
     void TriggerSiHardMask18()
     {
-        //staircase hardmask 1
-        _staircaseHardMaskVertAnimComp1.OffsetDist = StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp1.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp1.AnimateLeftFace(_stairFormAnimTime, 0f);
-
-        //staircase hardmask 2
-        _staircaseHardMaskVertAnimComp2.OffsetDist = -StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp2.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp2.AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair18);
+        //staircase hardmask 
+        _staircaseHardMaskVertAnimComp.OffsetDist = StairCaseStepWidth;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair18);
     }
 
     void TriggerOxNiStair18()
     {
         int passNum = 18;
 
+        //HardMask reduction
+        _staircaseHardMaskVertAnimComp.OffsetDist = -_staircaseHardMaskYoffset;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateTopFace(_stairFormAnimTime,0);
+
         for (int i=1; i<= passNum; i++)
         {
             //Oxide
-            //1
-            _oxideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _oxideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-            //2
-            _oxideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _oxideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+            _oxideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _oxideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
+            _oxideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
 
             //Nitride
-            //1
-            _nitrideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _nitrideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _nitrideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-
-            //2
-            _nitrideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _nitrideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
+            _nitrideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _nitrideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
 
             if (i == passNum)
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask19);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask19);
             }
             else
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
             }
         }
 
@@ -1181,161 +928,119 @@ public class NANDStorySequence : MonoBehaviour
 
     void TriggerSiHardMask19()
     {
-        //staircase hardmask 1
-        _staircaseHardMaskVertAnimComp1.OffsetDist = StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp1.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp1.AnimateLeftFace(_stairFormAnimTime, 0f);
-
-        //staircase hardmask 2
-        _staircaseHardMaskVertAnimComp2.OffsetDist = -StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp2.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp2.AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair19);
+        //staircase hardmask
+        _staircaseHardMaskVertAnimComp.OffsetDist = StairCaseStepWidth;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair19);
     }
 
     void TriggerOxNiStair19()
     {
         int passNum = 19;
 
+        //HardMask reduction
+        _staircaseHardMaskVertAnimComp.OffsetDist = -_staircaseHardMaskYoffset;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateTopFace(_stairFormAnimTime,0);
+
         for (int i=1; i<= passNum; i++)
         {
             //Oxide
-            //1
-            _oxideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _oxideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-            //2
-            _oxideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _oxideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+            _oxideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _oxideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
+            _oxideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
 
             //Nitride
-            //1
-            _nitrideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _nitrideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _nitrideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-
-            //2
-            _nitrideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _nitrideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
+            _nitrideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _nitrideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
 
             if (i == passNum)
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask20);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask20);
             }
             else
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
             }
         }
 
     }
 
-
     void TriggerSiHardMask20()
     {
-        //staircase hardmask 1
-        _staircaseHardMaskVertAnimComp1.OffsetDist = StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp1.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp1.AnimateLeftFace(_stairFormAnimTime, 0f);
-
-        //staircase hardmask 2
-        _staircaseHardMaskVertAnimComp2.OffsetDist = -StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp2.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp2.AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair20);
+        //staircase hardmask 
+        _staircaseHardMaskVertAnimComp.OffsetDist = StairCaseStepWidth;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair20);
     }
 
     void TriggerOxNiStair20()
     {
         int passNum = 20;
 
+        //HardMask reduction
+        _staircaseHardMaskVertAnimComp.OffsetDist = -_staircaseHardMaskYoffset;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateTopFace(_stairFormAnimTime,0);
+
         for (int i=1; i<= passNum; i++)
         {
             //Oxide
-            //1
-            _oxideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _oxideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-            //2
-            _oxideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _oxideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+            _oxideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _oxideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
+            _oxideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
 
             //Nitride
-            //1
-            _nitrideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _nitrideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _nitrideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-
-            //2
-            _nitrideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _nitrideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
+            _nitrideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _nitrideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
 
             if (i == passNum)
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask21);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask21);
             }
             else
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
             }
         }
 
-    }
-
-  
+    }  
 
     void TriggerSiHardMask21()
     {
-        //staircase hardmask 1
-        _staircaseHardMaskVertAnimComp1.OffsetDist = StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp1.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp1.AnimateLeftFace(_stairFormAnimTime, 0f);
-
-        //staircase hardmask 2
-        _staircaseHardMaskVertAnimComp2.OffsetDist = -StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp2.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp2.AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair21);
+        //staircase hardmask
+        _staircaseHardMaskVertAnimComp.OffsetDist = StairCaseStepWidth;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair21);
     }
 
     void TriggerOxNiStair21()
     {
         int passNum = 21;
 
+        //HardMask reduction
+        _staircaseHardMaskVertAnimComp.OffsetDist = -_staircaseHardMaskYoffset;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateTopFace(_stairFormAnimTime,0);
+
         for (int i=1; i<= passNum; i++)
         {
             //Oxide
-            //1
-            _oxideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _oxideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-            //2
-            _oxideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _oxideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+            _oxideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _oxideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
+            _oxideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
 
             //Nitride
-            //1
-            _nitrideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _nitrideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _nitrideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-
-            //2
-            _nitrideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _nitrideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
+            _nitrideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _nitrideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
 
             if (i == passNum)
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask22);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask22);
             }
             else
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
             }
         }
 
@@ -1343,52 +1048,39 @@ public class NANDStorySequence : MonoBehaviour
 
     void TriggerSiHardMask22()
     {
-        //staircase hardmask 1
-        _staircaseHardMaskVertAnimComp1.OffsetDist = StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp1.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp1.AnimateLeftFace(_stairFormAnimTime, 0f);
-
-        //staircase hardmask 2
-        _staircaseHardMaskVertAnimComp2.OffsetDist = -StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp2.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp2.AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair22);
+        //staircase hardmask 
+        _staircaseHardMaskVertAnimComp.OffsetDist = StairCaseStepWidth;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair22);
     }
 
     void TriggerOxNiStair22()
     {
         int passNum = 22;
 
+        //HardMask reduction
+        _staircaseHardMaskVertAnimComp.OffsetDist = -_staircaseHardMaskYoffset;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateTopFace(_stairFormAnimTime,0);
+
         for (int i=1; i<= passNum; i++)
         {
             //Oxide
-            //1
-            _oxideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _oxideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-            //2
-            _oxideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _oxideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+            _oxideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _oxideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
+            _oxideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
 
             //Nitride
-            //1
-            _nitrideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _nitrideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _nitrideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-
-            //2
-            _nitrideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _nitrideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
+            _nitrideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _nitrideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
 
             if (i == passNum)
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask23);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask23);
             }
             else
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
             }
         }
 
@@ -1396,52 +1088,39 @@ public class NANDStorySequence : MonoBehaviour
 
     void TriggerSiHardMask23()
     {
-        //staircase hardmask 1
-        _staircaseHardMaskVertAnimComp1.OffsetDist = StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp1.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp1.AnimateLeftFace(_stairFormAnimTime, 0f);
-
-        //staircase hardmask 2
-        _staircaseHardMaskVertAnimComp2.OffsetDist = -StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp2.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp2.AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair23);
+        //staircase hardmask 
+        _staircaseHardMaskVertAnimComp.OffsetDist = StairCaseStepWidth;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair23);
     }
 
     void TriggerOxNiStair23()
     {
         int passNum = 23;
 
+        //HardMask reduction
+        _staircaseHardMaskVertAnimComp.OffsetDist = -_staircaseHardMaskYoffset;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateTopFace(_stairFormAnimTime,0);
+
         for (int i=1; i<= passNum; i++)
         {
             //Oxide
-            //1
-            _oxideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _oxideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-            //2
-            _oxideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _oxideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+            _oxideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _oxideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
+            _oxideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
 
             //Nitride
-            //1
-            _nitrideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _nitrideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _nitrideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-
-            //2
-            _nitrideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _nitrideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
+            _nitrideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _nitrideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
 
             if (i == passNum)
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask24);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask24);
             }
             else
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
             }
         }
 
@@ -1449,52 +1128,39 @@ public class NANDStorySequence : MonoBehaviour
 
     void TriggerSiHardMask24()
     {
-        //staircase hardmask 1
-        _staircaseHardMaskVertAnimComp1.OffsetDist = StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp1.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp1.AnimateLeftFace(_stairFormAnimTime, 0f);
-
-        //staircase hardmask 2
-        _staircaseHardMaskVertAnimComp2.OffsetDist = -StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp2.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp2.AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair24);
+        //staircase hardmask 
+        _staircaseHardMaskVertAnimComp.OffsetDist = StairCaseStepWidth;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair24);
     }
 
     void TriggerOxNiStair24()
     {
         int passNum = 24;
 
+        //HardMask reduction
+        _staircaseHardMaskVertAnimComp.OffsetDist = -_staircaseHardMaskYoffset;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateTopFace(_stairFormAnimTime,0);
+
         for (int i=1; i<= passNum; i++)
         {
             //Oxide
-            //1
-            _oxideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _oxideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-            //2
-            _oxideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _oxideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+            _oxideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _oxideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
+            _oxideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
 
             //Nitride
-            //1
-            _nitrideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _nitrideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _nitrideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-
-            //2
-            _nitrideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _nitrideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
+            _nitrideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _nitrideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
 
             if (i == passNum)
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask25);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask25);
             }
             else
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
             }
         }
 
@@ -1502,52 +1168,39 @@ public class NANDStorySequence : MonoBehaviour
 
     void TriggerSiHardMask25()
     {
-        //staircase hardmask 1
-        _staircaseHardMaskVertAnimComp1.OffsetDist = StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp1.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp1.AnimateLeftFace(_stairFormAnimTime, 0f);
-
-        //staircase hardmask 2
-        _staircaseHardMaskVertAnimComp2.OffsetDist = -StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp2.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp2.AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair25);
+        //staircase hardmask 
+        _staircaseHardMaskVertAnimComp.OffsetDist = StairCaseStepWidth;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair25);
     }
 
     void TriggerOxNiStair25()
     {
         int passNum = 25;
 
+        //HardMask reduction
+        _staircaseHardMaskVertAnimComp.OffsetDist = -_staircaseHardMaskYoffset;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateTopFace(_stairFormAnimTime,0);
+
         for (int i=1; i<= passNum; i++)
         {
             //Oxide
-            //1
-            _oxideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _oxideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-            //2
-            _oxideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _oxideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+            _oxideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _oxideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
+            _oxideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
 
             //Nitride
-            //1
-            _nitrideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _nitrideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _nitrideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-
-            //2
-            _nitrideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _nitrideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
+            _nitrideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _nitrideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
 
             if (i == passNum)
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask26);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask26);
             }
             else
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
             }
         }
 
@@ -1555,106 +1208,79 @@ public class NANDStorySequence : MonoBehaviour
 
     void TriggerSiHardMask26()
     {
-        //staircase hardmask 1
-        _staircaseHardMaskVertAnimComp1.OffsetDist = StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp1.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp1.AnimateLeftFace(_stairFormAnimTime, 0f);
-
-        //staircase hardmask 2
-        _staircaseHardMaskVertAnimComp2.OffsetDist = -StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp2.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp2.AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair26);
+        //staircase hardmask 
+        _staircaseHardMaskVertAnimComp.OffsetDist = StairCaseStepWidth;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair26);
     }
 
     void TriggerOxNiStair26()
     {
         int passNum = 26;
 
+        //HardMask reduction
+        _staircaseHardMaskVertAnimComp.OffsetDist = -_staircaseHardMaskYoffset;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateTopFace(_stairFormAnimTime,0);
+
         for (int i=1; i<= passNum; i++)
         {
             //Oxide
-            //1
-            _oxideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _oxideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-            //2
-            _oxideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _oxideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+            _oxideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _oxideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
+            _oxideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
 
             //Nitride
-            //1
-            _nitrideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _nitrideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _nitrideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-
-            //2
-            _nitrideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _nitrideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
+            _nitrideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _nitrideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
 
             if (i == passNum)
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask27);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask27);
             }
             else
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
             }
         }
 
     }
 
-
     void TriggerSiHardMask27()
     {
-        //staircase hardmask 1
-        _staircaseHardMaskVertAnimComp1.OffsetDist = StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp1.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp1.AnimateLeftFace(_stairFormAnimTime, 0f);
-
-        //staircase hardmask 2
-        _staircaseHardMaskVertAnimComp2.OffsetDist = -StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp2.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp2.AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair27);
+        //staircase hardmask 
+        _staircaseHardMaskVertAnimComp.OffsetDist = StairCaseStepWidth;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair27);
     }
 
     void TriggerOxNiStair27()
     {
         int passNum = 27;
 
+        //HardMask reduction
+        _staircaseHardMaskVertAnimComp.OffsetDist = -_staircaseHardMaskYoffset;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateTopFace(_stairFormAnimTime,0);
+
         for (int i=1; i<= passNum; i++)
         {
             //Oxide
-            //1
-            _oxideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _oxideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-            //2
-            _oxideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _oxideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+            _oxideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _oxideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
+            _oxideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
 
             //Nitride
-            //1
-            _nitrideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _nitrideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _nitrideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-
-            //2
-            _nitrideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _nitrideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
+            _nitrideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _nitrideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
 
             if (i == passNum)
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask28);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask28);
             }
             else
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
             }
         }
 
@@ -1662,52 +1288,39 @@ public class NANDStorySequence : MonoBehaviour
 
     void TriggerSiHardMask28()
     {
-        //staircase hardmask 1
-        _staircaseHardMaskVertAnimComp1.OffsetDist = StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp1.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp1.AnimateLeftFace(_stairFormAnimTime, 0f);
-
-        //staircase hardmask 2
-        _staircaseHardMaskVertAnimComp2.OffsetDist = -StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp2.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp2.AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair28);
+        //staircase hardmask 
+        _staircaseHardMaskVertAnimComp.OffsetDist = StairCaseStepWidth;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair28);
     }
 
     void TriggerOxNiStair28()
     {
         int passNum = 28;
 
+        //HardMask reduction
+        _staircaseHardMaskVertAnimComp.OffsetDist = -_staircaseHardMaskYoffset;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateTopFace(_stairFormAnimTime,0);
+
         for (int i=1; i<= passNum; i++)
         {
             //Oxide
-            //1
-            _oxideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _oxideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-            //2
-            _oxideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _oxideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+            _oxideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _oxideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
+            _oxideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
 
             //Nitride
-            //1
-            _nitrideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _nitrideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _nitrideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-
-            //2
-            _nitrideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _nitrideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
+            _nitrideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _nitrideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
 
             if (i == passNum)
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask29);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask29);
             }
             else
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
             }
         }
 
@@ -1715,52 +1328,39 @@ public class NANDStorySequence : MonoBehaviour
 
     void TriggerSiHardMask29()
     {
-        //staircase hardmask 1
-        _staircaseHardMaskVertAnimComp1.OffsetDist = StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp1.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp1.AnimateLeftFace(_stairFormAnimTime, 0f);
-
-        //staircase hardmask 2
-        _staircaseHardMaskVertAnimComp2.OffsetDist = -StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp2.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp2.AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair29);
+        //staircase hardmask 
+        _staircaseHardMaskVertAnimComp.OffsetDist = StairCaseStepWidth;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair29);
     }
 
     void TriggerOxNiStair29()
     {
         int passNum = 29;
 
+        //HardMask reduction
+        _staircaseHardMaskVertAnimComp.OffsetDist = -_staircaseHardMaskYoffset;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateTopFace(_stairFormAnimTime,0);
+
         for (int i=1; i<= passNum; i++)
         {
             //Oxide
-            //1
-            _oxideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _oxideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-            //2
-            _oxideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _oxideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+            _oxideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _oxideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
+            _oxideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
 
             //Nitride
-            //1
-            _nitrideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _nitrideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _nitrideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-
-            //2
-            _nitrideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _nitrideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
+            _nitrideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _nitrideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
 
             if (i == passNum)
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask30);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask30);
             }
             else
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
             }
         }
 
@@ -1768,52 +1368,39 @@ public class NANDStorySequence : MonoBehaviour
 
     void TriggerSiHardMask30()
     {
-        //staircase hardmask 1
-        _staircaseHardMaskVertAnimComp1.OffsetDist = StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp1.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp1.AnimateLeftFace(_stairFormAnimTime, 0f);
-
-        //staircase hardmask 2
-        _staircaseHardMaskVertAnimComp2.OffsetDist = -StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp2.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp2.AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair30);
+        //staircase hardmask
+        _staircaseHardMaskVertAnimComp.OffsetDist = StairCaseStepWidth;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair30);
     }
 
     void TriggerOxNiStair30()
     {
         int passNum = 30;
 
+        //HardMask reduction
+        _staircaseHardMaskVertAnimComp.OffsetDist = -_staircaseHardMaskYoffset;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateTopFace(_stairFormAnimTime,0);
+
         for (int i=1; i<= passNum; i++)
         {
             //Oxide
-            //1
-            _oxideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _oxideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-            //2
-            _oxideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _oxideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+            _oxideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _oxideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
+            _oxideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
 
             //Nitride
-            //1
-            _nitrideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _nitrideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _nitrideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-
-            //2
-            _nitrideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _nitrideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
+            _nitrideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _nitrideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
 
             if (i == passNum)
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask31);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerSiHardMask31);
             }
             else
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
             }
         }
 
@@ -1821,344 +1408,334 @@ public class NANDStorySequence : MonoBehaviour
 
     void TriggerSiHardMask31()
     {
-        //staircase hardmask 1
-        _staircaseHardMaskVertAnimComp1.OffsetDist = StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp1.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp1.AnimateLeftFace(_stairFormAnimTime, 0f);
-
-        //staircase hardmask 2
-        _staircaseHardMaskVertAnimComp2.OffsetDist = -StairCaseStepWidth;
-        _staircaseHardMaskVertAnimComp2.DebugCurrentMesh();
-        _staircaseHardMaskVertAnimComp2.AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair31);
+        //staircase hardmask 
+        _staircaseHardMaskVertAnimComp.OffsetDist = StairCaseStepWidth;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, TriggerOxNiStair31);
     }
 
     void TriggerOxNiStair31()
     {
         int passNum = 31;
 
+        //HardMask reduction
+        _staircaseHardMaskVertAnimComp.OffsetDist = -_staircaseHardMaskYoffset;
+        _staircaseHardMaskVertAnimComp.DebugCurrentMesh();
+        _staircaseHardMaskVertAnimComp.AnimateTopFace(_stairFormAnimTime,0);
+
         for (int i=1; i<= passNum; i++)
         {
             //Oxide
-            //1
-            _oxideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _oxideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-            //2
-            _oxideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _oxideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
-            _oxideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+            _oxideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _oxideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
+            _oxideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
 
             //Nitride
-            //1
-            _nitrideVertexComp1[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
-            _nitrideVertexComp1[NumberOfLayers - i].DebugCurrentMesh();
-            _nitrideVertexComp1[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
-
-
-            //2
-            _nitrideVertexComp2[NumberOfLayers - i].OffsetDist = -StairCaseStepWidth;
-            _nitrideVertexComp2[NumberOfLayers - i].DebugCurrentMesh();
+            _nitrideVertexComp[NumberOfLayers - i].OffsetDist = StairCaseStepWidth;
+            _nitrideVertexComp[NumberOfLayers - i].DebugCurrentMesh();
 
             if (i == passNum)
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFaceWithCallBack(_stairFormAnimTime, 0f, FinalizeStaircase);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFaceWithCallBack(_stairFormAnimTime, 0f, FinalizeStaircase);
             }
             else
             {
-                _nitrideVertexComp2[NumberOfLayers - i].AnimateRightFace(_stairFormAnimTime, 0f);
+                _nitrideVertexComp[NumberOfLayers - i].AnimateLeftFace(_stairFormAnimTime, 0f);
             }
         }
 
     }
+
+    #endregion
 
     void FinalizeStaircase()
     {
         //Destroy Staircase hard mask
-        GameObject.Destroy(_staircaseHardMask1);
-        GameObject.Destroy(_staircaseHardMask2);
+        GameObject.Destroy(_staircaseHardMask);
 
-    }
-
-    /*
-    void LaySiliconSubstrat
-    {
-        //FIRST HALF
-        _siliconSubstrate1 = GameObject.Instantiate(OneLayer);
-        _siliconSubstrate1.name = "SiliconSubstrate";
-        _siliconSubstrate1.transform.parent = Half1;        
-
-        _siliconSubstrate1.transform.localScale = new Vector3(1,2,1);
-        _siliconSubstrate1.GetComponent<Renderer>().material = SiliconSubstrateMat1;
-
-        _siliconSubstrate1.transform.localPosition = _animStartPos;
-
-        LeanTween.moveLocalY (_siliconSubstrate1, 0f, 1f);
-
-        //SECOND HALF
-        _siliconSubstrate2 = GameObject.Instantiate(OneLayer);
-        _siliconSubstrate2.name = "SiliconSubstrate";
-        _siliconSubstrate2.transform.parent = Half2;        
-
-        _siliconSubstrate2.transform.localScale = new Vector3(1,2,1);
-        _siliconSubstrate2.GetComponent<Renderer>().material = SiliconSubstrateMat2;
-
-        _siliconSubstrate2.transform.localPosition = _animStartPos;
-
-        LeanTween.moveLocalY (_siliconSubstrate2, 0f, 1f).setOnComplete(() => {
-            LayOxideNitrideDeposition();
-        });
-
-    }
-
-    void LayOxideNitrideDeposition()
-    {
-        _oxideLayers1 = new GameObject[NumberOfLayers];
-        _nitrideLayers1 = new GameObject[NumberOfLayers];
-        _oxideLayers2 = new GameObject[NumberOfLayers];
-        _nitrideLayers2 = new GameObject[NumberOfLayers];
-              
-        for(int i=0; i < NumberOfLayers; i++)
-        {
-                   
-            _oxideLayers1[i] = GameObject.Instantiate(OneLayer);
-            _oxideLayers1[i].name = "OxideLayer"+i.ToString();
-            _oxideLayers1[i].transform.parent = Half1;           
-            _oxideLayers1[i].GetComponent<Renderer>().material = OxideMat1;
-            _oxideLayers1[i].transform.localPosition = _animStartPos;
-
-            _oxideLayers2[i] = GameObject.Instantiate(OneLayer);
-            _oxideLayers2[i].name = "OxideLayer"+i.ToString();
-            _oxideLayers2[i].transform.parent = Half2;           
-            _oxideLayers2[i].GetComponent<Renderer>().material = OxideMat2;
-            _oxideLayers2[i].transform.localPosition = _animStartPos;
-
-
-            LeanTween.moveLocalY (_oxideLayers1[i], targetY, animTime).setDelay(delay);
-            LeanTween.moveLocalY (_oxideLayers2[i], targetY, animTime).setDelay(delay);
-
-            targetY  +=layerOffsetDistanceY;
-            delay += animTime;
-
-            _nitrideLayers1[i] = GameObject.Instantiate(OneLayer);
-            _nitrideLayers1[i].name = "NitrideLayer"+i.ToString();
-            _nitrideLayers1[i].transform.parent = Half1;
-            _nitrideLayers1[i].GetComponent<Renderer>().material = NitrideMat1;
-            _nitrideLayers1[i].transform.localPosition = _animStartPos;
-
-            _nitrideLayers2[i] = GameObject.Instantiate(OneLayer);
-            _nitrideLayers2[i].name = "NitrideLayer"+i.ToString();
-            _nitrideLayers2[i].transform.parent = Half2;
-            _nitrideLayers2[i].GetComponent<Renderer>().material = NitrideMat2;
-            _nitrideLayers2[i].transform.localPosition = _animStartPos;
-
-            //Call hardmask deposition at the end
-            if (i == (NumberOfLayers - 1))
-            {
-                LeanTween.moveLocalY (_nitrideLayers1[i], targetY, animTime).setDelay(delay); 
-                LeanTween.moveLocalY (_nitrideLayers2[i], targetY, animTime).setDelay(delay).setOnComplete(MoveCameraToCut1); 
-            }
-            else
-            {
-                LeanTween.moveLocalY (_nitrideLayers1[i], targetY, animTime).setDelay(delay); 
-                LeanTween.moveLocalY (_nitrideLayers2[i], targetY, animTime).setDelay(delay);
-            }
-            targetY+=layerOffsetDistanceY;
-            delay += animTime;  
-
-
-        }
-    }
-
-    void MoveCameraToCut1()
-    {
-        //Move Camera to the first cut
-        LeanTween.move(MainCamera, CamFirstCutPos.position, 3f).setOnComplete(DepositChannelHoleHardMask);
-
+        DepositChannelHoleHardMask();
 
     }
 
     void DepositChannelHoleHardMask()
-    {
-        float hardMaskAnimtime = 3f;
+    {       
+        ChannelHoleHardMaskThickness += (OxideThickness * NumberOfLayers) + (NitrideThickness * NumberOfLayers);
+        _targetY = SiliconSubtrateThickness + (ChannelHoleHardMaskThickness / 2f);
 
-        //FIRST HALF
-        _hardMaskLayer1 = GameObject.Instantiate(OneLayer);
-        _hardMaskLayer1.name = "ChannelHardMask";
-        _hardMaskLayer1.transform.parent = Half1;
-        _hardMaskLayer1.GetComponent<Renderer>().material = ChannelHardMaskMat1;
-        _hardMaskLayer1.transform.localScale = new Vector3(1,2,1);
-        _hardMaskLayer1.transform.localPosition = _animStartPos;
-        targetY+=(0.5f * layerOffsetDistanceY); //Notice that the Y scale is 2 for hardmask, hence added offset
-        LeanTween.moveLocalY (_hardMaskLayer1, targetY, hardMaskAnimtime); 
+        _channelHoleMask = GameObject.Instantiate(OneLayer);
+        _channelHoleMask.name = "ChannelHoleHardMask";
+        _channelHoleMask.transform.parent = StructureParent;
+        _channelHoleMask.transform.localScale = new Vector3(MasterDepth - scaleOffset, ChannelHoleHardMaskThickness, MasterWidth);
+        _channelHoleMask.GetComponent<Renderer>().material = ChannelHardMaskMat;
+        _channelHoleMask.transform.localPosition = _animStartPos;  
 
-        //SECOND HALF
-        _hardMaskLayer2 = GameObject.Instantiate(OneLayer);
-        _hardMaskLayer2.name = "ChannelHardMask";
-        _hardMaskLayer2.transform.parent = Half2;
-        _hardMaskLayer2.GetComponent<Renderer>().material = ChannelHardMaskMat2;
-        _hardMaskLayer2.transform.localScale = new Vector3(1,2,1);
-        _hardMaskLayer2.transform.localPosition = _animStartPos;
-        LeanTween.moveLocalY (_hardMaskLayer2, targetY, hardMaskAnimtime).setOnComplete(BeginChannelHolesStep1); 
+        LeanTween.moveLocalY (_channelHoleMask, _targetY, _channelHoleHardMaskAnimTime).setOnComplete(Nothing); 
     }
 
-
-
-    void BeginChannelHolesStep1()
+    void Nothing()
     {
-        float channelHoleTargetY = 107f;
-
-
-        //FIRST HALF
-        _channelHoles1 = GameObject.Instantiate(ChannelHolesHalf);
-        _channelHoles1.name = "ChannelHole";
-        _channelHoles1.transform.parent = Half1;    
-        Vector3 channelHole1StartPos = _animStartPos;
-        channelHole1StartPos.z = 30f;
-        _channelHoles1.transform.localPosition = channelHole1StartPos;
-
-        LeanTween.moveLocalY (_channelHoles1, channelHoleTargetY, 1f);
-
-
-        //SECOND HALF
-        _channelHoles2 = GameObject.Instantiate(ChannelHolesHalf);
-        _channelHoles2.name = "ChannelHole";
-        _channelHoles2.transform.parent = Half2;   
-        Vector3 channelHole2StartPos = _animStartPos;
-        channelHole2StartPos.z = -20.7f;
-        _channelHoles2.transform.localPosition = channelHole2StartPos;
-        LeanTween.moveLocalY (_channelHoles2, channelHoleTargetY, 1f).setOnComplete(ChannelHoleEtchStep2);
 
     }
 
-    void ChannelHoleEtchStep2()
+    void DepositChannelHoleCylinders()
     {
-        float etchAnimTime = 10f;
+        int CylinderNum = 30;
+        _targetY = SiliconSubtrateThickness + ChannelHoleHardMaskThickness;
 
-        float channelHole1TargetYPos = 52.25f;
-        float channelHole1TargetYScale = 52f;
+        _channelHoleClndrParent = new GameObject("ChannelHoleCylinderParent");
+        _channelHoleClndrParent.transform.parent = transform;
+
+//        _channelHoleCylndr = GameObject.Instantiate(ChannelHoleCylinder);
+//        _channelHoleCylndr.name = "ChannelHole";
+//        _channelHoleCylndr.transform.parent = _channelHoleClndrParent;   
+
+        //one row has 5 cylinders
+        //there are 10 rows
+        int cylinderNumInOneRow = 5;
+        int rowNum = 10;
+
+        GameObject _cylndrRowHolder = new GameObject ("CylinderRow");
+        _cylndrRowHolder.transform.parent = _channelHoleClndrParent.transform;
+
+        GameObject[] cylndrs = new GameObject[cylinderNumInOneRow];
+        GameObject[] rowCylndrs = new GameObject[rowNum];
+
+        for (int i=0; i < cylndrs.Length; i++)
+        {
+            cylndrs[i] = GameObject.Instantiate(ChannelHoleCylinder);
+            cylndrs[i].name = "ChannelHole"+i;
+            cylndrs[i].transform.parent = _cylndrRowHolder.transform;
+
+            cylndrs[i].transform.localScale = new Vector3(ChannelHoleCylinderDia, 1f, ChannelHoleCylinderDia);
+            cylndrs[i].transform.localPosition = new Vector3(0,0, -i * (2f * ChannelHoleCylinderDia));
+
+        }
+
+        float startZ = -MasterDepth / 2f;
+        float offsetZ = Mathf.Abs (MasterDepth / rowNum);  
+
+
+//        for (int j=0; j < rowCylndrs.Length; j++)
+//        {
+//            rowCylndrs[j] = GameObject.Instantiate(_cylndrRowHolder);
+//        }
+
+       
+
+    }
+
+    void BeginChannelHoleEtching()
+    {
+        float channelHole1TargetYPos = (SiliconSubtrateThickness + (NumberOfLayers * OxideThickness) + (NumberOfLayers * NitrideThickness) ) / 2f + 0.1f;
+        float channelHole1TargetYScale = (SiliconSubtrateThickness + (NumberOfLayers * OxideThickness) + (NumberOfLayers * NitrideThickness) ) / 2f;
 
         //MOVE AND SCALE THE CHANNEL HOLE CYLINDERS
-        LeanTween.moveLocalY (_channelHoles1, channelHole1TargetYPos, etchAnimTime);
-        LeanTween.scaleY (_channelHoles1, channelHole1TargetYScale, etchAnimTime);
+        LeanTween.moveLocalY (_channelHolesCylndrs1, channelHole1TargetYPos, _channelHoleEtchAnimTime);
+        LeanTween.scaleY (_channelHolesCylndrs1, channelHole1TargetYScale, _channelHoleEtchAnimTime);
 
-        LeanTween.moveLocalY (_channelHoles2, channelHole1TargetYPos, etchAnimTime);
-        LeanTween.scaleY (_channelHoles2, channelHole1TargetYScale, etchAnimTime);
+        LeanTween.moveLocalY (_channelHoleCylndr, channelHole1TargetYPos, _channelHoleEtchAnimTime);
+        LeanTween.scaleY (_channelHoleCylndr, channelHole1TargetYScale, _channelHoleEtchAnimTime);
 
         //FADE OUT HARD MASK
-        LeanTween.alpha(_hardMaskLayer1, 0f, etchAnimTime);
-        LeanTween.alpha(_hardMaskLayer2, 0f, etchAnimTime).setOnComplete(FinalizeEtch);
-
+        LeanTween.alpha(_channelHoleMask, 0.5f, _channelHoleEtchAnimTime).setOnComplete(FinalizeEtch);
 
     }
 
     void FinalizeEtch()
     {
-        _hardMaskLayer1.SetActive(false);
-        _hardMaskLayer2.SetActive(false);
+        GameObject.Destroy(_channelHoleMask);
 
-        //BEGIN NEXT STEP i.e. DepositStairCaseHardMask()
-        DepositStairCaseHardMask();
+        _channelHolesCylndrs1.transform.parent = transform;
+        _channelHoleCylndr.transform.parent = transform;
+
+        DepositTrenchHardMask();
 
     }
 
-    void FadeOutSecondHalf()
+    void DepositTrenchHardMask()
     {
-        foreach (Transform child in Half2)
-        {
-            LeanTween.alpha(child.gameObject, 0f, 1f);
-        }
-    }
+        LeanTween.move(MainCamera, CamSecondCutPos.position, 2f).setEase(LeanTweenType.easeInCubic);
 
-    void DepositStairCaseHardMask()
-    {
-        float CHMAnimTime = 3f;
-        float thickness = 3.5f;
-        float targetY = 106.76f;
+        TrenchHardMaskThickness += (OxideThickness * NumberOfLayers) + (NitrideThickness * NumberOfLayers);
+        _targetY = SiliconSubtrateThickness + (TrenchHardMaskThickness / 2f);
 
         //FIRST HALF
-        _staircaseHardMask1 = GameObject.Instantiate(OneLayer);
-        _staircaseHardMask1.name = "StaircaseHardMask";
-        _staircaseHardMask1.transform.parent = Half1;
-        _staircaseHardMask1.GetComponent<Renderer>().material = StaircaseHardMaskMat;
-        _staircaseHardMask1.transform.localScale = new Vector3(1,thickness,1);
-        _staircaseHardMask1.transform.localPosition = _animStartPos;       
-        LeanTween.moveLocalY (_staircaseHardMask1, targetY, CHMAnimTime); 
+        _trenchHardMask1 = GameObject.Instantiate(OneLayer);
+        _trenchHardMask1.name = "TrenchHardMask1";
+        _trenchHardMask1.transform.parent = Half1;
+        _trenchHardMask1.transform.localScale = new Vector3(MasterDepth - scaleOffset, TrenchHardMaskThickness, MasterWidth);
+        _trenchHardMask1.GetComponent<Renderer>().material = TrenchHardMaskMat;
+        _trenchHardMask1.transform.localPosition = _animStartPos;   
+
+//        VertexAnimation trenchMaskVertAnimComp1 = _trenchHardMask1.GetComponent<VertexAnimation>();
+//        trenchMaskVertAnimComp1.OffsetDist = trenchHardMaskSideFaceOffset;
+//        trenchMaskVertAnimComp1.DebugCurrentMesh();
+//        trenchMaskVertAnimComp1.AnimateLeftFace(0,0);
+
+        LeanTween.moveLocalY (_trenchHardMask1, _targetY, _trenchHardMaskAnimTime); 
 
         //Second HALF
-        _staircaseHardMask2 = GameObject.Instantiate(OneLayer);
-        _staircaseHardMask2.name = "StaircaseHardMask";
-        _staircaseHardMask2.transform.parent = Half2;
-        _staircaseHardMask2.GetComponent<Renderer>().material = StaircaseHardMaskMat;
-        _staircaseHardMask2.transform.localScale = new Vector3(1,thickness,1);
-        _staircaseHardMask2.transform.localPosition = _animStartPos;       
-        LeanTween.moveLocalY (_staircaseHardMask2, targetY, CHMAnimTime).setOnComplete(BeginStaircaseFormation);
-     
+        _trenchHardMask2 = GameObject.Instantiate(OneLayer);
+        _trenchHardMask2.name = "TrenchHardMask2";
+        _trenchHardMask2.transform.parent = Half2;
+        _trenchHardMask2.transform.localScale = new Vector3(MasterDepth - scaleOffset, TrenchHardMaskThickness, MasterWidth);
+        _trenchHardMask2.GetComponent<Renderer>().material = TrenchHardMaskMat;
+        _trenchHardMask2.transform.localPosition = _animStartPos;   
 
+//        VertexAnimation trenchMaskVertAnimComp2 = _trenchHardMask2.GetComponent<VertexAnimation>();
+//        trenchMaskVertAnimComp2.OffsetDist = -trenchHardMaskSideFaceOffset;
+//        trenchMaskVertAnimComp2.DebugCurrentMesh();
+//        trenchMaskVertAnimComp2.AnimateLeftFace(0,0);
+
+        LeanTween.moveLocalY (_trenchHardMask2, _targetY, _trenchHardMaskAnimTime).setOnComplete(BeginTrenchEtching); 
 
     }
 
-    void BeginStaircaseFormation()
+    void BeginTrenchEtching()
     {
-        VertexAnimation vertAnimSCHMComp1;
-        VertexAnimation vertAnimSCHMComp2;
+        _trenchHardMask1.transform.parent = transform;
+        _trenchHardMask2.transform.parent = transform;
 
-        VertexAnimation vertAnimSCOxiComp1;
-        VertexAnimation vertAnimSCOxiComp2;
+        _siliconSubstrate.transform.parent = transform;
+//        _siliconSubstrate2.transform.parent = transform;
+        
+        //Create two more copies of First Second Half Gameobjects
+        //Rename existing First Second Half by First_front and Second_front
+        _frontHalf1 = Half1.gameObject;
+        _frontHalf2 = Half2.gameObject;
 
-        VertexAnimation vertAnimSCNiComp1;
-        VertexAnimation vertAnimSCNiComp2;
+        _frontHalf1.name = "FrontHalf1";
+        _frontHalf2.name = "FrontHalf2";
 
-//        VertexAnimation vertexAnimationComp1;
-//        VertexAnimation vertexAnimationComp2;
+        _middleHalf1 = GameObject.Instantiate(_frontHalf1);
+        _middleHalf2 = GameObject.Instantiate(_frontHalf2);
 
-        float ultimateOffset = -45f;
-        float eachStepOffset = ultimateOffset / NumberOfLayers;  
+        _middleHalf1.name = "MiddleHalf1";
+        _middleHalf1.transform.parent = transform;
+        _middleHalf2.name = "MiddleHalf2";
+        _middleHalf2.transform.parent = transform;
 
-        float ultimateAnimTime = 30f;
-        float eachLayerAnimTime = ultimateAnimTime / NumberOfLayers;
+        _backHalf1 = GameObject.Instantiate(_frontHalf1);
+        _backHalf2 = GameObject.Instantiate(_frontHalf2);
 
-        vertAnimSCHMComp1 = _staircaseHardMask1.GetComponent<VertexAnimation>();
-        vertAnimSCHMComp2 = _staircaseHardMask2.GetComponent<VertexAnimation>();
-
-        float ultimateDelay = 1.1f;
-        float eachLayerDelay = ultimateDelay / NumberOfLayers;
-
-        //Animate Hard Mask     
-        //Animate right face of second half staircase mask
-        vertAnimSCHMComp2.enabled = true;
-        vertAnimSCHMComp2.OffsetDist = ultimateOffset;
-
-        vertAnimSCHMComp2.DebugCurrentMesh();
-        vertAnimSCHMComp2.AnimateRightFace(ultimateAnimTime, 0f);
+        _backHalf1.name = "BackHalf1";
+        _backHalf1.transform.parent = transform;
+        _backHalf2.name = "BackHalf2";
+        _backHalf2.transform.parent = transform;
 
 
-        for (int i=1; i <= NumberOfLayers; i++)
+        float frontOffset = 0.8f;
+        //Animate Front 
+        foreach(Transform child in _frontHalf1.transform)
         {
-            //Animate O-N
-            _oxideLayers2[_oxideLayers2.Length - i].GetComponent<VertexAnimation>().enabled = true;
-            _oxideLayers2[_oxideLayers2.Length - i].GetComponent<VertexAnimation>().OffsetDist = eachStepOffset * (_oxideLayers2.Length - i);
-            _oxideLayers2[_oxideLayers2.Length - i].GetComponent<VertexAnimation>().DebugCurrentMesh();
-            _oxideLayers2[_oxideLayers2.Length - i].GetComponent<VertexAnimation>().AnimateRightFace(ultimateAnimTime - eachLayerAnimTime * i, ultimateDelay - eachLayerDelay * i);
-
-            _nitrideLayers2[_nitrideLayers2.Length - i].GetComponent<VertexAnimation>().enabled = true;
-            _nitrideLayers2[_nitrideLayers2.Length - i].GetComponent<VertexAnimation>().OffsetDist = eachStepOffset * (_oxideLayers2.Length - i);
-            _nitrideLayers2[_nitrideLayers2.Length - i].GetComponent<VertexAnimation>().DebugCurrentMesh();
-            _nitrideLayers2[_nitrideLayers2.Length - i].GetComponent<VertexAnimation>().AnimateRightFace(ultimateAnimTime - eachLayerAnimTime * i, ultimateDelay - eachLayerDelay * i);
+            Debug.Log("child : "+child.name);
+            
+            if((child.name != "ChannelHole") || (child.name != "SiliconSubstrate"))
+            {
+                child.gameObject.GetComponent<VertexAnimation>().OffsetDist = frontOffset;
+                child.gameObject.GetComponent<VertexAnimation>().DebugCurrentMesh();
+                child.gameObject.GetComponent<VertexAnimation>().AnimateBackFace(_trenchFormAnimTime, 0f);
+            }
 
         }
 
+        foreach(Transform child in _frontHalf2.transform)
+        {
+            if((child.name != "ChannelHole") || (child.name != "SiliconSubstrate"))
+            {
+                child.gameObject.GetComponent<VertexAnimation>().OffsetDist = frontOffset;
+                child.gameObject.GetComponent<VertexAnimation>().DebugCurrentMesh();
+                child.gameObject.GetComponent<VertexAnimation>().AnimateBackFace(_trenchFormAnimTime, 0f);
+            }
+
+        }
+
+        //Animate middle
+        float middleOffset = 0.35f;
+        foreach(Transform child in _middleHalf1.transform)
+        {
+            if((child.name != "ChannelHole") || (child.name != "SiliconSubstrate"))
+            {
+                child.gameObject.GetComponent<VertexAnimation>().OffsetDist = middleOffset;
+                child.gameObject.GetComponent<VertexAnimation>().DebugCurrentMesh();
+                child.gameObject.GetComponent<VertexAnimation>().AnimateBackFace(_trenchFormAnimTime, 0f);
+
+                child.gameObject.GetComponent<VertexAnimation>().OffsetDist = -middleOffset;
+                child.gameObject.GetComponent<VertexAnimation>().DebugCurrentMesh();
+                child.gameObject.GetComponent<VertexAnimation>().AnimateFrontFace(_trenchFormAnimTime, 0f);
+            }
+
+        }
+
+        foreach(Transform child in _middleHalf2.transform)
+        {
+            if((child.name != "ChannelHole") || (child.name != "SiliconSubstrate"))
+            {
+                child.gameObject.GetComponent<VertexAnimation>().OffsetDist = middleOffset;
+                child.gameObject.GetComponent<VertexAnimation>().DebugCurrentMesh();
+                child.gameObject.GetComponent<VertexAnimation>().AnimateBackFace(_trenchFormAnimTime, 0f);
+
+                child.gameObject.GetComponent<VertexAnimation>().OffsetDist = -middleOffset;
+                child.gameObject.GetComponent<VertexAnimation>().DebugCurrentMesh();
+                child.gameObject.GetComponent<VertexAnimation>().AnimateFrontFace(_trenchFormAnimTime, 0f);
+            }
+
+        }
+
+        //Animate Back
+        foreach(Transform child in _backHalf1.transform)
+        {
+            if((child.name != "ChannelHole") || (child.name != "SiliconSubstrate"))
+            {
+                child.gameObject.GetComponent<VertexAnimation>().OffsetDist = -frontOffset;
+                child.gameObject.GetComponent<VertexAnimation>().DebugCurrentMesh();
+                child.gameObject.GetComponent<VertexAnimation>().AnimateFrontFace(1f, 0f);
+            }
+
+        }
+
+        foreach(Transform child in _backHalf2.transform)
+        {
+            if((child.name != "ChannelHole") || (child.name != "SiliconSubstrate"))
+            {
+                child.gameObject.GetComponent<VertexAnimation>().OffsetDist = -frontOffset;
+                child.gameObject.GetComponent<VertexAnimation>().DebugCurrentMesh();
+                child.gameObject.GetComponent<VertexAnimation>().AnimateFrontFace(1f, 0f);
+            }
+
+        }
+
+        LeanTween.value(1f,0.1f,_trenchMaskFadeTime).setOnUpdate((float val) =>
+            {
+                Color temp = TrenchHardMaskMat.color;
+                temp.a = val;
+                TrenchHardMaskMat.color = temp;
+
+            }).setOnComplete(FinalizeTrench);
+                
     }
 
-    void AnimateStaircaseHardMask()
+    void FinalizeTrench()
     {
+        //reset alpha on TrenchHardMaskMat
 
+        Color temp = TrenchHardMaskMat.color;
+        temp.a = 1f;
+        TrenchHardMaskMat.color = temp;
+            
+        GameObject.Destroy(_trenchHardMask1);
+        GameObject.Destroy(_trenchHardMask2);
+
+//        Teleport.SetActive(true);
+
+        LeanTween.move(MainCamera, CamThirdCutPos.position, 7f).setEase(LeanTweenType.easeInCubic).setDelay(1f).setOnComplete(CamDollyShot);
     }
 
-    void AnimateStaircaseONLayers()
+    void CamDollyShot()
     {
+        LeanTween.move(MainCamera, CamForthCutPos.position, 15f).setEase(LeanTweenType.easeInCubic).setDelay(1f);
 
     }
-    */
+ 
 
 }
