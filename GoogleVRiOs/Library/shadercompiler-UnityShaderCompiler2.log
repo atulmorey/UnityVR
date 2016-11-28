@@ -1,5 +1,22 @@
 Base path: /Applications/Unity/Unity.app/Contents
 Cmd: getPlatforms
-Unhandled exception: Protocol error - failed to read correct magic number
+Cmd: disassembleShader
+  api=5 insize=3492 outsize=3492 ok=1
+Cmd: disassembleShader
+  api=5 insize=5964 outsize=5964 ok=1
+Cmd: disassembleShader
+  api=23 insize=5049 outsize=5049 ok=1
+Cmd: disassembleShader
+  api=5 insize=0 outsize=43 ok=1
+Cmd: disassembleShader
+  api=24 insize=2150 outsize=2150 ok=1
+Cmd: disassembleShader
+  api=5 insize=0 outsize=43 ok=1
+Cmd: disassembleShader
+  api=5 insize=3581 outsize=3581 ok=1
+Cmd: disassembleShader
+  api=23 insize=3370 outsize=3370 ok=1
+Cmd: disassembleShader
+  api=5 insize=0 outsize=43 ok=1
 
 Quitting shader compiler process
