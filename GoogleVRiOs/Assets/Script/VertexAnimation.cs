@@ -320,6 +320,22 @@ public class VertexAnimation : MonoBehaviour
 
     }
 
+    public void AnimateFrontFaceWithCallBack(float animTime, float delay, System.Action callBackAction)
+    {
+        float targetX = 0f;  
+        targetX = _maxX + OffsetDist;       
+
+        LeanTween.value(_maxX, targetX, animTime).setDelay(delay).setOnUpdate((float val) => 
+            {
+                UpdateFrontFaceInX(val);
+            }).setOnComplete(() =>
+                {
+                    callBackAction();
+                    ResetCurrentMeshParameters();
+                });
+
+    }
+
 
     //+ X means modifying mesh in positive Z direction
     void UpdateFrontFaceInX(float updatedVal)
