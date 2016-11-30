@@ -22,11 +22,8 @@ public class Teleport : MonoBehaviour, IGvrGazeResponder
     public Material CubeDefaultMat;
 
     private Vector3 _cubeStartingPos;
-    private Quaternion _cubeStartingRot;
     private Vector3 _mainCamStartingPos;
     private float _portSpeed = 50f;
-    private int _rotateTweenId;
-    private int _scaleTweenId;
 
     private GameManager _gameManager;
     private ScreenFader _screenFader;
@@ -35,7 +32,6 @@ public class Teleport : MonoBehaviour, IGvrGazeResponder
     void Start ()
     {
         _cubeStartingPos = transform.localPosition;
-        _cubeStartingRot = transform.localRotation;
 
         _mainCamStartingPos = MainCamera.transform.localPosition;
 
@@ -68,12 +64,12 @@ public class Teleport : MonoBehaviour, IGvrGazeResponder
         //Force reset the material
         GetComponent<Renderer>().material = CubeDefaultMat;  
 
-        _rotateTweenId = LeanTween.rotateY(gameObject, transform.localEulerAngles.y + 90f, 2f).setEase(LeanTweenType.easeInOutCubic).setLoopPingPong().id;
+        LeanTween.rotateY(gameObject, transform.localEulerAngles.y + 90f, 2f).setEase(LeanTweenType.easeInOutCubic).setLoopPingPong();
 
         float perctIncrease = 5f;
         Vector3 targetScale = new Vector3(perctIncrease * 0.01f / transform.localScale.x, perctIncrease * 0.01f / transform.localScale.y, perctIncrease * 0.01f / transform.localScale.z);
 
-        _scaleTweenId = LeanTween.scale(gameObject, targetScale, 2f).setEase(LeanTweenType.easeInOutCubic).setLoopPingPong().id;
+        LeanTween.scale(gameObject, targetScale, 2f).setEase(LeanTweenType.easeInOutCubic).setLoopPingPong();
 
     }
 

@@ -14,7 +14,6 @@ public class SceneTeleport : MonoBehaviour
 
     private bool _isGazeOnButton = false;
     private float _fillAmount = 0f;
-    private float _startTime;
 
     private float _fillTime = 1.5f;
 
@@ -33,7 +32,6 @@ public class SceneTeleport : MonoBehaviour
     public void HandleOnEnter()
     {
         _isGazeOnButton = true; 
-        _startTime = Time.time;
 
         //Animate the fill amount using LeanTween
         //Cache the ID to cancel this tween if needed

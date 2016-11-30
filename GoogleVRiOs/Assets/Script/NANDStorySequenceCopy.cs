@@ -279,7 +279,6 @@ public class NANDStorySequenceCopy : MonoBehaviour
 
     void TriggerOxNiStair1()
     {
-        int passNum = 1;
 
         //HardMask reduction
         //1

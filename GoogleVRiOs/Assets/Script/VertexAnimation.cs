@@ -58,9 +58,7 @@ public class VertexAnimation : MonoBehaviour
 
         Vector3[] cubeVertices = cubeMesh.vertices;
         _numVerts = cubeVertices.Length;
-        int[] cubeTriangles = cubeMesh.triangles;
-        Vector3[] cubeNormals = cubeMesh.normals;
-        Vector2[] cubeUvs = cubeMesh.uv;
+
 
 //        Debug.Log("****VERTICES********"+ cubeVertices.Length);
 //        for(int v=0; v < cubeVertices.Length; v++)
