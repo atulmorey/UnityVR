@@ -283,6 +283,22 @@ public class VertexAnimation : MonoBehaviour
 
     }
 
+    public void AnimateTopFaceWithCallBack(float animTime, float delay, System.Action callBackAction)
+    {
+        float targetY = 0f;  
+        targetY = _maxY + OffsetDist;       
+
+        LeanTween.value(_maxY, targetY, animTime).setDelay(delay).setOnUpdate((float val) => 
+            {
+                UpdateTopFaceInY(val);
+            }).setOnComplete(() =>
+                {
+                    callBackAction();
+                    ResetCurrentMeshParameters();
+                });
+
+    }
+
 
     //+ Y means modifying mesh in positive Z direction
     void UpdateTopFaceInY(float updatedVal)
