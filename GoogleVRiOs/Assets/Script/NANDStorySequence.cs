@@ -12,12 +12,14 @@ public class NANDStorySequence : MonoBehaviour
     public Transform Step4BCutPos;
     public Transform Step5CutPos;
     public Transform Step6CutPos;
+    public Transform[] CameraFlyByPoints;
 
     [Header("GameObjects")]
     public GameObject MainCamera;
     public GameObject OneLayer;
     public GameObject ChannelHoleCylinder;
     public GameObject StoryBoardUI;
+    public GameObject DisplayTextUI;
 
     [Header("Materials")]
     public Material SiliconSubstrateMat;
@@ -28,6 +30,7 @@ public class NANDStorySequence : MonoBehaviour
     public Material StaircaseHardMaskMat;
     public Material TrenchHardMaskMat;
     public Material WMat;
+    public Material WTransMat;
     public Material StaircaseContactMat;
     public Material StaircaseContactHardMaskMat;
     public Material StaircaseContactChannelMat;
@@ -79,6 +82,7 @@ public class NANDStorySequence : MonoBehaviour
     private GameObject _wTrench1_2;
     private GameObject _wTrench2_1;
     private GameObject _wTrench2_2;
+    private GameObject _wTrench3;
 
     private GameObject _staircaseContact;
     private GameObject _staircaseContactHardMask;
@@ -91,41 +95,67 @@ public class NANDStorySequence : MonoBehaviour
     private Vector3 _animBottomStartPos = new Vector3 (0,-1000,0);
     private Vector3 _mainCamStartPos;
 
+    //animTimes
+//    private float _siSubAnimTime = 1f;
+//    private float _oxNiAnimTime = 0.1f;
+//    private float _stairCaseHardMaskAnimTime = 1f;
+//    private float _stairFormAnimTime = 0.1f;
+//    private float _channelHoleHardMaskAnimTime = 1f;
+//    private float _channelHoleCylinderDepositAnimTime = 2f;
+//    private float _channelHoleEtchAnimTime = 2f;
+//    private float _trenchHardMaskAnimTime = 3f;
+//    private float _trenchMaskFadeTime = 7f;
+//    private float _trenchFormAnimTime = 7f;
+//    private float _nitrideRemovalAnimTime = 5f;
+//    private float _tungRecessAnimTime = 3f;
+//    private float _stairCaseContactDepositAnimTime = 2f;
+//    private float _stairCaseContactHardMaskDepositTime = 1f;
+//    private float _staircaseContactMaskEtchAnimTime = 6f;
+//    private float _staircaseContactEtchAnimTime = 2f;
+//    private float _wRecessAnimTime = 7f;
+//    private float _wFillAnimTime = 7f;
+//    private float _triNiDepositOnChannelAnimTime = 7f;
+//    private float _flyByTime = 14f;
 
     //animTimes
-    private float _siSubAnimTime = 1f;
-    private float _oxNiAnimTime = 0.1f;
-    private float _stairCaseHardMaskAnimTime = 1f;
-    private float _stairFormAnimTime = 0.1f;
-    private float _channelHoleHardMaskAnimTime = 1f;
-    private float _channelHoleCylinderDepositAnimTime = 2f;
-    private float _channelHoleEtchAnimTime = 2f;
-    private float _trenchHardMaskAnimTime = 3f;
-    private float _trenchMaskFadeTime = 7f;
-    private float _trenchFormAnimTime = 7f;
-    private float _nitrideRemovalAnimTime = 5f;
-    private float _tungRecessAnimTime = 3f;
-    private float _stairCaseContactDepositAnimTime = 2f;
-    private float _stairCaseContactHardMaskDepositTime = 1f;
-    private float _staircaseContactMaskEtchAnimTime = 6f;
-    private float _staircaseContactEtchAnimTime = 2f;
-    private float _wRecessAnimTime = 7f;
-    private float _wFillAnimTime = 7f;
-    private float _triNiDepositOnChannelAnimTime = 7f;
+    private float _siSubAnimTime = 0f;
+    private float _oxNiAnimTime = 0f;
+    private float _stairCaseHardMaskAnimTime = 0f;
+    private float _stairFormAnimTime = 0f;
+    private float _channelHoleHardMaskAnimTime = 0f;
+    private float _channelHoleCylinderDepositAnimTime = 0f;
+    private float _channelHoleEtchAnimTime = 0f;
+    private float _trenchHardMaskAnimTime = 0f;
+    private float _trenchMaskFadeTime = 0f;
+    private float _trenchFormAnimTime = 0f;
+    private float _nitrideRemovalAnimTime = 0f;
+    private float _tungRecessAnimTime = 0f;
+    private float _stairCaseContactDepositAnimTime = 0f;
+    private float _stairCaseContactHardMaskDepositTime = 0f;
+    private float _staircaseContactMaskEtchAnimTime = 0f;
+    private float _staircaseContactEtchAnimTime = 0f;
+    private float _wRecessAnimTime = 0f;
+    private float _wFillAnimTime = 0f;
+    private float _triNiDepositOnChannelAnimTime = 0f;
+    private float _flyByTime = 0f;
 
     //distances
     private float _targetY = 0f;
     private float _staircaseHardMaskYoffset = 0f;
 
+    //Script components
     private VertexAnimation _staircaseHardMaskVertAnimComp;
     private VertexAnimation[] _oxideVertexComp;
     private VertexAnimation[] _nitrideVertexComp;
+    private DisplayTextUIController _displayTextUIController;
+
 
     float delay = 0.1f; //Keep if equal to animtime as a start
     float scaleOffset = 1f;
     float frontOffset = 0.8f;
     float middleOffset = 0.3f;
     float toonShaderOutlineWidth = 3f;
+    float trenchDepth;
 
     public enum Mode {Story, Step1, Step2, Step3, Step4, Step5, Step6, Step7};
 
@@ -151,7 +181,9 @@ public class NANDStorySequence : MonoBehaviour
 
         //UI 
         //Make sure UI is off by default
-        DisableUI();
+        DisableStoryModeUI();
+
+        DisplayTextUI.SetActive(true);
 
         if (NANDAudio.isPlaying)
         {
@@ -163,6 +195,11 @@ public class NANDStorySequence : MonoBehaviour
         {
             DepostiSiliconSubstrate();
         }
+
+        _displayTextUIController = DisplayTextUI.GetComponent<DisplayTextUIController>();
+        Debug.Assert(_displayTextUIController != null, "Display Text UI Controller component is missing");
+        _displayTextUIController.DisplayString("");
+
     }
         
 
@@ -196,13 +233,18 @@ public class NANDStorySequence : MonoBehaviour
 
         WMat.shader = Shader.Find("Legacy Shaders/Transparent/Diffuse");  
 
+        WTransMat.shader = Shader.Find("Legacy Shaders/Transparent/Diffuse");  
+        temp = WTransMat.color;
+        temp.a = 1f;
+        WTransMat.color = temp;
+       
+        
     }
 
     void DepostiSiliconSubstrate()
     {
         //Play Step1
 //        NANDAudio.PlayOneShot(Step1Clip);
-        
         
         //Silicon substrate
         _targetY = SiliconSubtrateThickness / 2f;
@@ -221,34 +263,19 @@ public class NANDStorySequence : MonoBehaviour
 
     void DepositeOxideNitrideLayers()
     {
-        //Nitride FIRST
-        _nitrideLayers = new GameObject[NumberOfLayers];
+
+        //Oxide first FIRST
         _oxideLayers = new GameObject[NumberOfLayers];
+        _nitrideLayers = new GameObject[NumberOfLayers];
+
 
         //Calculate anim time using clip length
-//        _oxNiAnimTime = (Step1Clip.length - _siSubAnimTime) / (2 * NumberOfLayers);
+        //        _oxNiAnimTime = (Step1Clip.length - _siSubAnimTime) / (2 * NumberOfLayers);
 
         delay = 0f;
 
         for(int i=0; i < NumberOfLayers; i++)
         {
-            //Nitride
-            _nitrideLayers[i] = GameObject.Instantiate(OneLayer);
-            _nitrideLayers[i].name = "NitrideLayer"+i.ToString();
-            _nitrideLayers[i].tag = "Nitride";
-            _nitrideLayers[i].transform.parent = StructureParent;   
-            _nitrideLayers[i].transform.localScale = new Vector3(MasterDepth, OxideThickness, MasterWidth);
-            _nitrideLayers[i].GetComponent<Renderer>().material = NitrideMat;
-            _nitrideLayers[i].transform.localPosition = _animTopStartPos;
-
-      
-            _targetY = SiliconSubtrateThickness + (NitrideThickness * i) + (OxideThickness * i ) + (OxideThickness / 2f)  ;
-            LeanTween.moveLocalY (_nitrideLayers[i], _targetY, _oxNiAnimTime).setDelay(delay);
-
-
-
-            delay += _oxNiAnimTime;
-
             //Oxide
             _oxideLayers[i] = GameObject.Instantiate(OneLayer);
             _oxideLayers[i].name = "OxideLayer"+i.ToString();
@@ -258,33 +285,119 @@ public class NANDStorySequence : MonoBehaviour
             _oxideLayers[i].GetComponent<Renderer>().material = OxideMat;
             _oxideLayers[i].transform.localPosition = _animTopStartPos;
 
+            _targetY = SiliconSubtrateThickness + (OxideThickness * i) + (NitrideThickness * i ) + (NitrideThickness / 2f)  ;
+            LeanTween.moveLocalY (_oxideLayers[i], _targetY, _oxNiAnimTime).setDelay(delay);
+            delay += _oxNiAnimTime;
 
-            _targetY = SiliconSubtrateThickness + (NitrideThickness * i) + (OxideThickness* (i + 1)) + + (NitrideThickness / 2f) ;
+            //Nitride
+            _nitrideLayers[i] = GameObject.Instantiate(OneLayer);
+            _nitrideLayers[i].name = "NitrideLayer"+i.ToString();
+            _nitrideLayers[i].tag = "Nitride";
+            _nitrideLayers[i].transform.parent = StructureParent;   
+            _nitrideLayers[i].transform.localScale = new Vector3(MasterDepth, OxideThickness, MasterWidth);
+            _nitrideLayers[i].GetComponent<Renderer>().material = NitrideMat;
+            _nitrideLayers[i].transform.localPosition = _animTopStartPos;
 
+            _targetY = SiliconSubtrateThickness + (OxideThickness * i) + (NitrideThickness* (i + 1)) + + (OxideThickness / 2f) ;
 
             //Trigger next event when reached last layer
+            LeanTween.moveLocalY (_nitrideLayers[i], _targetY, _oxNiAnimTime).setDelay(delay);
+
             if ( i == NumberOfLayers-1)
             {
-                LeanTween.moveLocalY (_oxideLayers[i], _targetY, _oxNiAnimTime).setDelay(delay).setOnComplete(DepositStairCaseHardMask);
+                LeanTween.moveLocalY (_nitrideLayers[i], _targetY, _oxNiAnimTime).setDelay(delay).setOnComplete(DepositStairCaseHardMask);
             }
             else
             {
-                LeanTween.moveLocalY (_oxideLayers[i], _targetY, _oxNiAnimTime).setDelay(delay);
+                LeanTween.moveLocalY (_nitrideLayers[i], _targetY, _oxNiAnimTime).setDelay(delay);
 
                 if (LeanTween.isTweening(MainCamera) == false)
                 {
-                    LeanTween.move(MainCamera, Step1CutPos.position, _oxNiAnimTime * NumberOfLayers).setDelay(delay);
+                    LeanTween.move(MainCamera, Step1CutPos.position, _oxNiAnimTime * NumberOfLayers).setDelay(delay).setOnComplete(DisplayStackFormationText);
                 }
             }
-
             delay += _oxNiAnimTime;
 
         }
     }
-        
 
+    void DisplayStackFormationText()
+    {
+        //Display string
+        _displayTextUIController.DisplayString("STACK DEPOSITION");
+    }
+
+/*
+//    THIS IS OLD SEQUENCE WHERE NITRIDE HAPPENS FIRST
+//    void DepositeOxideNitrideLayers()
+//    {
+//        //Nitride FIRST
+//        _nitrideLayers = new GameObject[NumberOfLayers];
+//        _oxideLayers = new GameObject[NumberOfLayers];
+//
+//        //Calculate anim time using clip length
+////        _oxNiAnimTime = (Step1Clip.length - _siSubAnimTime) / (2 * NumberOfLayers);
+//
+//        delay = 0f;
+//
+//        for(int i=0; i < NumberOfLayers; i++)
+//        {
+//            //Nitride
+//            _nitrideLayers[i] = GameObject.Instantiate(OneLayer);
+//            _nitrideLayers[i].name = "NitrideLayer"+i.ToString();
+//            _nitrideLayers[i].tag = "Nitride";
+//            _nitrideLayers[i].transform.parent = StructureParent;   
+//            _nitrideLayers[i].transform.localScale = new Vector3(MasterDepth, OxideThickness, MasterWidth);
+//            _nitrideLayers[i].GetComponent<Renderer>().material = NitrideMat;
+//            _nitrideLayers[i].transform.localPosition = _animTopStartPos;
+//
+//      
+//            _targetY = SiliconSubtrateThickness + (NitrideThickness * i) + (OxideThickness * i ) + (OxideThickness / 2f)  ;
+//            LeanTween.moveLocalY (_nitrideLayers[i], _targetY, _oxNiAnimTime).setDelay(delay);
+//
+//
+//
+//            delay += _oxNiAnimTime;
+//
+//            //Oxide
+//            _oxideLayers[i] = GameObject.Instantiate(OneLayer);
+//            _oxideLayers[i].name = "OxideLayer"+i.ToString();
+//            _oxideLayers[i].tag = "Oxide";
+//            _oxideLayers[i].transform.parent = StructureParent;
+//            _oxideLayers[i].transform.localScale = new Vector3(MasterDepth, NitrideThickness,MasterWidth);
+//            _oxideLayers[i].GetComponent<Renderer>().material = OxideMat;
+//            _oxideLayers[i].transform.localPosition = _animTopStartPos;
+//
+//
+//            _targetY = SiliconSubtrateThickness + (NitrideThickness * i) + (OxideThickness* (i + 1)) + + (NitrideThickness / 2f) ;
+//
+//
+//            //Trigger next event when reached last layer
+//            if ( i == NumberOfLayers-1)
+//            {
+//                LeanTween.moveLocalY (_oxideLayers[i], _targetY, _oxNiAnimTime).setDelay(delay).setOnComplete(DepositStairCaseHardMask);
+//            }
+//            else
+//            {
+//                LeanTween.moveLocalY (_oxideLayers[i], _targetY, _oxNiAnimTime).setDelay(delay);
+//
+//                if (LeanTween.isTweening(MainCamera) == false)
+//                {
+//                    LeanTween.move(MainCamera, Step1CutPos.position, _oxNiAnimTime * NumberOfLayers).setDelay(delay);
+//                }
+//            }
+//
+//            delay += _oxNiAnimTime;
+//
+//        }
+//    }
+    */
+        
     void DepositStairCaseHardMask()
     {
+        //Display string
+        _displayTextUIController.DisplayString("STAIRCASE FORMATION");
+
         //Play Step2
 //        NANDAudio.PlayOneShot(Step2Clip);
 
@@ -1570,6 +1683,8 @@ public class NANDStorySequence : MonoBehaviour
 
     void DepositChannelHoleHardMask()
     { 
+        _displayTextUIController.DisableDisplay();
+        
 //        NANDAudio.PlayOneShot(Step3Clip);
 
         //Move camera 
@@ -1590,7 +1705,9 @@ public class NANDStorySequence : MonoBehaviour
     }
         
     void DepositChannelHoleCylinders()
-    {        
+    {   
+       
+
         _targetY = SiliconSubtrateThickness + ChannelHoleHardMaskThickness + (OxideThickness * NumberOfLayers) + (NitrideThickness * NumberOfLayers);
 
         _channelHoleClndrParent = new GameObject("ChannelHoleCylinderParent");
@@ -1655,13 +1772,14 @@ public class NANDStorySequence : MonoBehaviour
 
     void BeginChannelHoleEtching()
     {
+        //Display string
+        _displayTextUIController.DisplayString("CHANNNEL HOLE");
+
         //Calculate anim time using clip length
 //        _channelHoleEtchAnimTime = (Step3Clip.length - _channelHoleHardMaskAnimTime - _channelHoleCylinderDepositAnimTime);
         
         float channelHole1TargetYPos = SiliconSubtrateThickness + (NumberOfLayers * OxideThickness + NumberOfLayers * NitrideThickness)  / 2f + 0.1f;
         float channelHole1TargetYScale =  (NumberOfLayers * OxideThickness + NumberOfLayers * NitrideThickness)  / 2f;
-
-
 
         //MOVE AND SCALE THE CHANNEL HOLE CYLINDERS
         LeanTween.moveLocalY (_channelHoleClndrParent, channelHole1TargetYPos, _channelHoleEtchAnimTime);
@@ -1669,11 +1787,14 @@ public class NANDStorySequence : MonoBehaviour
 
         //MASK REDUCTION 
 //
-//        VertexAnimation channelHoleMaskVertAnimComp = _channelHoleMask.GetComponent<VertexAnimation>();
-//
-//        channelHoleMaskVertAnimComp.OffsetDist = -(ChannelHoleHardMaskThickness - (NumberOfLayers * OxideThickness + NumberOfLayers * NitrideThickness))/100f ;
-//        channelHoleMaskVertAnimComp.DebugCurrentMesh();
-//        channelHoleMaskVertAnimComp.AnimateTopFace(_channelHoleEtchAnimTime,0);
+        VertexAnimation channelHoleMaskVertAnimComp = _channelHoleMask.GetComponent<VertexAnimation>();
+
+        float totalThickness = ChannelHoleHardMaskThickness + (OxideThickness * NumberOfLayers) + (NitrideThickness * NumberOfLayers);
+        float offset = (totalThickness - ChannelHoleHardMaskThickness) / totalThickness;
+
+        channelHoleMaskVertAnimComp.OffsetDist = -(1f - offset);
+        channelHoleMaskVertAnimComp.DebugCurrentMesh();
+        channelHoleMaskVertAnimComp.AnimateTopFace(_channelHoleEtchAnimTime,0);
 
         //+ MASK FADE
         LeanTween.value(gameObject, 1f, 0.5f, _channelHoleEtchAnimTime).setOnUpdate((float val) =>
@@ -1687,6 +1808,9 @@ public class NANDStorySequence : MonoBehaviour
 
     void FinalizeChannelHoleEtch()
     {
+        //Display string
+        _displayTextUIController.DisableDisplay();
+
         GameObject.Destroy(_channelHoleMask);
 
         //Reset ChannelHoleHardMaskMat
@@ -1701,6 +1825,8 @@ public class NANDStorySequence : MonoBehaviour
     {
 //        NANDAudio.PlayOneShot(Step4Clip);
 
+        //Display string
+        _displayTextUIController.DisplayString("CHANNNEL HOLE");
 
         float thickness = TrenchHardMaskThickness + (OxideThickness * NumberOfLayers) + (NitrideThickness * NumberOfLayers);
         _targetY = SiliconSubtrateThickness + (thickness / 2f);
@@ -1719,6 +1845,8 @@ public class NANDStorySequence : MonoBehaviour
 
     void MoveCameraBeforeTrenchEtching()
     {
+        _displayTextUIController.DisableDisplay();
+
         //Move camera before Step 4
         LeanTween.move(MainCamera, Step4ACutPos.position, 2f).setOnComplete(BeginTrenchEtching);
 
@@ -1726,6 +1854,9 @@ public class NANDStorySequence : MonoBehaviour
 
     void BeginTrenchEtching()
     {
+        //Display string
+        _displayTextUIController.DisplayString("TRENCH ISOLATION");
+
         _trenchHardMask.transform.parent = transform;
         _siliconSubstrate.transform.parent = transform;
 
@@ -1797,6 +1928,8 @@ public class NANDStorySequence : MonoBehaviour
 
     void FinalizeTrench()
     {
+        _displayTextUIController.DisableDisplay();
+
         //reset alpha on TrenchHardMaskMat
         Color temp = TrenchHardMaskMat.color;
         temp.a = 1f;
@@ -1809,12 +1942,14 @@ public class NANDStorySequence : MonoBehaviour
 
     void TriggerNitrideRemoval()
     {
+        //Display string
+        _displayTextUIController.DisplayString("NITRIDE REMOVAL");
+
         //Calculate anim time using clip length
 //        _trenchFormAnimTime = Step4Clip.length - _trenchHardMaskAnimTime - _trenchFormAnimTime;
         
         //Before removal, make the ChannelHoleMat to solid shader
         ChannelHolesMat.shader = Shader.Find("Standard");
-
 
         //Change NitrideMat shader to transperant
         NitrideMat.shader = Shader.Find("Legacy Shaders/Transparent/Diffuse");
@@ -1831,7 +1966,9 @@ public class NANDStorySequence : MonoBehaviour
     }
 
     void FinalizeNitrideRemoval()
-    {        
+    { 
+        _displayTextUIController.DisableDisplay();
+
         //Find all gameobjects with tag = Nitride
         //and disable 
         foreach(Transform t in _frontHalf.transform)
@@ -1915,6 +2052,9 @@ public class NANDStorySequence : MonoBehaviour
 
     void TriggerWDeposition()
     {
+        //Display string
+        _displayTextUIController.DisplayString("TUNGSTON FILL");
+
         //Make the ChannelHole mat shader diffuse
 //        ChannelHolesMat.shader = Shader.Find("Legacy Shaders/Diffuse Fast");         
 
@@ -1968,6 +2108,8 @@ public class NANDStorySequence : MonoBehaviour
 
     void MoveCameraBeforeWDepositInTrench()
     {
+        _displayTextUIController.DisableDisplay();
+
         //Move Camera back to step4 for better view
         LeanTween.move(MainCamera, Step4BCutPos.position, 2f).setOnComplete(TriggerWDepositionInTrench);
     }
@@ -1976,10 +2118,11 @@ public class NANDStorySequence : MonoBehaviour
     void TriggerWDepositionInTrench()
     {
         
-        //3: Create two W cubes to fill the trench 
-        float wTrenchThichkness = SiliconSubtrateThickness + (OxideThickness * NumberOfLayers) + (NitrideThickness * NumberOfLayers);
+        //3: Create 4 W cubes, 2 per trench to filll the trench 
+        //create one cube at the edge facing camera
+        float wTrenchThichkness = (OxideThickness * NumberOfLayers) + (NitrideThickness * NumberOfLayers);
 
-        float trenchDepth = MasterDepth / 10f;
+        trenchDepth = MasterDepth / 10f;
         float trench1CenterX = MasterDepth / 4f;
         float trench2CenterX = -MasterDepth / 4f;
 
@@ -1987,29 +2130,51 @@ public class NANDStorySequence : MonoBehaviour
         _wTrench1_1.name = "WTrench1_1";
         _wTrench1_1.transform.parent = transform;
         _wTrench1_1.transform.localScale = new Vector3(trenchDepth / 2f,wTrenchThichkness,MasterWidth);
-        _wTrench1_1.transform.position = new Vector3(trench1CenterX + trenchDepth / 4f, wTrenchThichkness / 2f, 0f);
+        _wTrench1_1.transform.position = new Vector3(trench1CenterX + trenchDepth / 4f, SiliconSubtrateThickness + wTrenchThichkness / 2f, 0f);
         _wTrench1_1.GetComponent<Renderer>().material = WMat;
 
         _wTrench1_2 = GameObject.Instantiate(OneLayer);
         _wTrench1_2.name = "WTrench1_2";
         _wTrench1_2.transform.parent = transform;
         _wTrench1_2.transform.localScale = new Vector3(trenchDepth / 2f,wTrenchThichkness,MasterWidth);
-        _wTrench1_2.transform.position = new Vector3(trench1CenterX - trenchDepth / 4f, wTrenchThichkness / 2f, 0f);
+        _wTrench1_2.transform.position = new Vector3(trench1CenterX - trenchDepth / 4f, SiliconSubtrateThickness + wTrenchThichkness / 2f, 0f);
         _wTrench1_2.GetComponent<Renderer>().material = WMat;
 
         _wTrench2_1 = GameObject.Instantiate(OneLayer);
         _wTrench2_1.name = "WTrench2_1";
         _wTrench2_1.transform.parent = transform;
         _wTrench2_1.transform.localScale = new Vector3(trenchDepth / 2f,wTrenchThichkness,MasterWidth);
-        _wTrench2_1.transform.position = new Vector3(trench2CenterX + trenchDepth / 4f, wTrenchThichkness / 2f, 0f);
+        _wTrench2_1.transform.position = new Vector3(trench2CenterX + trenchDepth / 4f, SiliconSubtrateThickness + wTrenchThichkness / 2f, 0f);
         _wTrench2_1.GetComponent<Renderer>().material = WMat;
 
         _wTrench2_2 = GameObject.Instantiate(OneLayer);
         _wTrench2_2.name = "WTrench2_2";
         _wTrench2_2.transform.parent = transform;
         _wTrench2_2.transform.localScale = new Vector3(trenchDepth / 2f,wTrenchThichkness,MasterWidth);
-        _wTrench2_2.transform.position = new Vector3(trench2CenterX - trenchDepth / 4f, wTrenchThichkness / 2f, 0f);
+        _wTrench2_2.transform.position = new Vector3(trench2CenterX - trenchDepth / 4f, SiliconSubtrateThickness + wTrenchThichkness / 2f, 0f);
         _wTrench2_2.GetComponent<Renderer>().material = WMat;
+
+        _wTrench3 = GameObject.Instantiate(OneLayer);
+        _wTrench3.name = "WTrench3";
+        _wTrench3.transform.parent = transform;
+        _wTrench3.transform.localScale = new Vector3(MasterDepth, wTrenchThichkness, 0.1f);
+        _wTrench3.transform.position = new Vector3(0f, SiliconSubtrateThickness + wTrenchThichkness / 2f, MasterWidth / 2f);
+        _wTrench3.GetComponent<Renderer>().material = WTransMat;
+
+
+        //Aniamte alpha pn _wTrench3 to 0
+        LeanTween.value(gameObject, WTransMat.color.a, 0f, 2f).setOnUpdate((float val) => {
+            Color temp = WTransMat.color;
+            temp.a = val;
+            WTransMat.color = temp;
+        }).setOnComplete(BeginWRecess);
+
+    }
+
+    void BeginWRecess()
+    {
+        //Display string
+        _displayTextUIController.DisplayString("TUNGSTON RECESS");
 
         //4: Animate _wTrench 11 12 21 22
         delay = 0f;
@@ -2034,6 +2199,8 @@ public class NANDStorySequence : MonoBehaviour
 
     void finalizeWRecess()
     {
+        _displayTextUIController.DisableDisplay();
+
         GameObject.Destroy(_wTrench1_1);
         GameObject.Destroy(_wTrench1_2);
         GameObject.Destroy(_wTrench2_1);
@@ -2054,7 +2221,7 @@ public class NANDStorySequence : MonoBehaviour
 
     void BeginStaircaseContactDeposit()
     {
-        float thickness = SiliconSubtrateThickness + (NumberOfLayers * OxideThickness)+ (NumberOfLayers * NitrideThickness) + StairCaseContactThickness;
+        float thickness = (NumberOfLayers * OxideThickness)+ (NumberOfLayers * NitrideThickness) + StairCaseContactThickness;
         _targetY = SiliconSubtrateThickness + thickness / 2;
 
         _staircaseContact = GameObject.Instantiate(OneLayer);
@@ -2069,7 +2236,7 @@ public class NANDStorySequence : MonoBehaviour
 
     void BeginStaircaseContactHardMaskDeposit()
     {        
-        _targetY = SiliconSubtrateThickness + (NumberOfLayers * OxideThickness)+ (NumberOfLayers * NitrideThickness) + StairCaseContactThickness + stairCaseContactHardMaskThickness/2f;
+        _targetY = SiliconSubtrateThickness + (NumberOfLayers * OxideThickness)+ (NumberOfLayers * NitrideThickness) + StairCaseContactThickness + (stairCaseContactHardMaskThickness / 2f);
 
         _staircaseContactHardMask = GameObject.Instantiate(OneLayer);
         _staircaseContactHardMask.name = "StaircaseContactHardMask";
@@ -2099,6 +2266,9 @@ public class NANDStorySequence : MonoBehaviour
 
     void BeginStaircaseContactChannelEtching()
     {
+        //Display string
+        _displayTextUIController.DisplayString("CONTACT HOLE");
+
         GameObject[] staircaseContactChannelsFront = new GameObject[NumberOfLayers]; 
         GameObject[] staircaseContactChannelsMiddle = new GameObject[NumberOfLayers];
         GameObject[] staircaseContactChannelsBack = new GameObject[NumberOfLayers];
@@ -2110,11 +2280,11 @@ public class NANDStorySequence : MonoBehaviour
         float xOffset = 13f;
 
         float startY = SiliconSubtrateThickness + (NumberOfLayers * OxideThickness)+ (NumberOfLayers * NitrideThickness) + StairCaseContactThickness + stairCaseContactHardMaskThickness;
-        float channelHole1TargetYPos = SiliconSubtrateThickness + (NumberOfLayers * OxideThickness + NumberOfLayers * NitrideThickness)  / 2f + 0.1f;
+        float channelHole1TargetYPos = SiliconSubtrateThickness + StairCaseContactThickness+ (NumberOfLayers * OxideThickness + NumberOfLayers * NitrideThickness )  / 2f + 0.1f;
         float channelHole1TargetYScale =  (NumberOfLayers * OxideThickness + NumberOfLayers * NitrideThickness)  / 2f;
 
         //front
-        for(int i = 0; i < staircaseContactChannelsFront.Length; i++)
+        for(int i = 0; i < staircaseContactChannelsFront.Length - 1; i++)
         {
             staircaseContactChannelsFront[i] = GameObject.Instantiate(ChannelHoleCylinder);
             staircaseContactChannelsFront[i].name = "ContactHole"+i;
@@ -2122,7 +2292,7 @@ public class NANDStorySequence : MonoBehaviour
             staircaseContactChannelsFront[i].transform.parent =_frontHalf.transform;
             staircaseContactChannelsFront[i].GetComponent<Renderer>().material = StaircaseContactChannelMat;
             staircaseContactChannelsFront[i].transform.localScale = new Vector3(stairCaseChannelHoleDia, 1f, stairCaseChannelHoleDia);
-            staircaseContactChannelsFront[i].transform.localPosition = new Vector3(xOffset,startY, -MasterWidth / 2f + i * stairCaseChannelGap);
+            staircaseContactChannelsFront[i].transform.localPosition = new Vector3(xOffset,startY, -MasterWidth / 2f + (i +1) * stairCaseChannelGap+ i * stairCaseChannelGap);
 
             //MOVE AND SCALE THE CHANNEL HOLE CYLINDERS
             LeanTween.moveLocalY (staircaseContactChannelsFront[i], channelHole1TargetYPos, _staircaseContactEtchAnimTime);
@@ -2130,7 +2300,7 @@ public class NANDStorySequence : MonoBehaviour
         }
 
         //middle
-        for(int i = 0; i < staircaseContactChannelsFront.Length; i++)
+        for(int i = 0; i < staircaseContactChannelsMiddle.Length  - 1; i++)
         {
             staircaseContactChannelsMiddle[i] = GameObject.Instantiate(ChannelHoleCylinder);
             staircaseContactChannelsMiddle[i].name = "ChannelHole"+i;
@@ -2138,7 +2308,7 @@ public class NANDStorySequence : MonoBehaviour
             staircaseContactChannelsMiddle[i].transform.parent =_middleHalf.transform;
             staircaseContactChannelsMiddle[i].GetComponent<Renderer>().material = StaircaseContactChannelMat;
             staircaseContactChannelsMiddle[i].transform.localScale = new Vector3(stairCaseChannelHoleDia, 1f, stairCaseChannelHoleDia);
-            staircaseContactChannelsMiddle[i].transform.localPosition = new Vector3(0f ,startY, -MasterWidth / 2f + i * stairCaseChannelGap);
+            staircaseContactChannelsMiddle[i].transform.localPosition = new Vector3(0f,startY, -MasterWidth / 2f + (i +1) * stairCaseChannelGap+ i * stairCaseChannelGap);
 
             //MOVE AND SCALE THE CHANNEL HOLE CYLINDERS
             LeanTween.moveLocalY (staircaseContactChannelsMiddle[i], channelHole1TargetYPos, _staircaseContactEtchAnimTime);
@@ -2146,7 +2316,7 @@ public class NANDStorySequence : MonoBehaviour
         }
 
         //Back
-        for(int i = 0; i < staircaseContactChannelsFront.Length; i++)
+        for(int i = 0; i < staircaseContactChannelsBack.Length - 1; i++)
         {
             staircaseContactChannelsBack[i] = GameObject.Instantiate(ChannelHoleCylinder);
             staircaseContactChannelsBack[i].name = "ChannelHole"+i;
@@ -2154,7 +2324,7 @@ public class NANDStorySequence : MonoBehaviour
             staircaseContactChannelsBack[i].transform.parent =_backHalf.transform;
             staircaseContactChannelsBack[i].GetComponent<Renderer>().material = StaircaseContactChannelMat;
             staircaseContactChannelsBack[i].transform.localScale = new Vector3(stairCaseChannelHoleDia, 1f, stairCaseChannelHoleDia);
-            staircaseContactChannelsBack[i].transform.localPosition = new Vector3(-xOffset ,startY, -MasterWidth / 2f + i * stairCaseChannelGap);
+            staircaseContactChannelsBack[i].transform.localPosition = new Vector3(-xOffset,startY, -MasterWidth / 2f + (i +1) * stairCaseChannelGap+ i * stairCaseChannelGap);
 
             //MOVE AND SCALE THE CHANNEL HOLE CYLINDERS
             LeanTween.moveLocalY (staircaseContactChannelsBack[i], channelHole1TargetYPos, _staircaseContactEtchAnimTime);
@@ -2173,6 +2343,8 @@ public class NANDStorySequence : MonoBehaviour
 
     void MoveCameraBeforeFinalizeStaircaseContactEtching()
     {
+        _displayTextUIController.DisableDisplay();
+        
         LeanTween.move(MainCamera, Step6CutPos.position, 2f).setOnComplete(FinalizeStaircaseContactEtching);
     }
 
@@ -2185,11 +2357,8 @@ public class NANDStorySequence : MonoBehaviour
 
     void BeginTriNiDepositOnContact()
     {
-        GameObject.Destroy(_staircaseContact);
-
         //Animate Color of ChannelHoles from existing to Nitride Blue
         Color currentColor = StaircaseContactChannelMat.color;
-        StaircaseContactChannelMat.color = currentColor;
 
         LeanTween.value(gameObject, currentColor, NANDUtils.AppExLightBrightBlue, _triNiDepositOnChannelAnimTime).setOnUpdate((Color col) =>{
             StaircaseContactChannelMat.color = col;
@@ -2201,38 +2370,49 @@ public class NANDStorySequence : MonoBehaviour
         //Change Shader for StaircaseContactChannel
 //        StaircaseContactChannelMat.shader = Shader.Find("Standard");
         
-        LeanTween.move(MainCamera, _mainCamStartPos, 5f).setOnComplete(FillTungstonFromBottom);
+        LeanTween.move(MainCamera, _mainCamStartPos, 5f).setOnComplete(FillTungstonInStaircaseContactHoles);
     }
 
-    void FillTungstonFromBottom()
+    void FillTungstonInStaircaseContactHoles()
     {
-        
 
-        float thickness = wFillThickness + SiliconSubtrateThickness + (OxideThickness * NumberOfLayers) + (NitrideThickness * NumberOfLayers);
-        _targetY =  SiliconSubtrateThickness + thickness/2f;
+        //Display string
+        _displayTextUIController.DisplayString("TUNGSTON FILL");
 
-        _wFill = GameObject.Instantiate(OneLayer);
-        _wFill.name = "wFill";
-        _wFill.transform.parent = transform;
-        _wFill.transform.localScale = new Vector3(MasterDepth - 2 * scaleOffset, thickness, MasterWidth + scaleOffset);
-        _wFill.GetComponent<Renderer>().material = WMat;
+        //Animate Color of StaircaseContactChannelMat from existing to Tungston orange
+        Color currentColor = StaircaseContactChannelMat.color;
 
-        _wFill.transform.localPosition = _animBottomStartPos;   
+        //Display string
+        _displayTextUIController.DisplayString("TUNGSTON FILL");
 
-        //Fade out staircase contact
-        LeanTween.value(gameObject, StaircaseContactMat.color.a, 0f, _wFillAnimTime).setOnUpdate((float val) => {
-            Color temp = StaircaseContactMat.color;
-            temp.a = val;
-            StaircaseContactMat.color = temp;
-        });
-
-        LeanTween.moveLocalY (_wFill, _targetY, _wFillAnimTime).setOnComplete(finalizeTungstonFill); 
+        LeanTween.value(gameObject, currentColor, NANDUtils.AppExLightOrange, _triNiDepositOnChannelAnimTime).setOnUpdate((Color col) =>{
+            StaircaseContactChannelMat.color = col;
+        }).setOnComplete(BegineCameraFlyBy);
     }
 
-    void finalizeTungstonFill()
+    void BegineCameraFlyBy()
     {
-        EnableUI();
+        //Display string
+        _displayTextUIController.DisableDisplay();
+
+        _displayTextUIController.DisableDisplay();
+
+        Vector3[] splinePoints = new Vector3[CameraFlyByPoints.Length];
+
+        for (int i=0; i < splinePoints.Length; i++)
+        {
+            splinePoints[i] = CameraFlyByPoints[i].position;
+        }
+
+        LeanTween.moveSpline(MainCamera, splinePoints, _flyByTime).setOnComplete(FinalizeCameraFlyBy);
+
     }
+
+    void FinalizeCameraFlyBy()
+    {
+        EnableStoryModeUI();
+    }
+    
 
     void OnDestroy()
     {
@@ -2241,7 +2421,7 @@ public class NANDStorySequence : MonoBehaviour
 
     public void Replay()
     {
-        DisableUI();
+        DisableStoryModeUI();
 
         //Destroy previous structure
         foreach(Transform child in _frontHalf.transform)
@@ -2263,14 +2443,18 @@ public class NANDStorySequence : MonoBehaviour
 
     }
 
-    void EnableUI()
+    void EnableStoryModeUI()
     {
         StoryBoardUI.SetActive(true);
     }
 
-    void DisableUI()
+    void DisableStoryModeUI()
     {
         StoryBoardUI.SetActive(false);
     }
+
+
+
+
 
 }
