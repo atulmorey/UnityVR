@@ -1,0 +1,39 @@
+<linker>
+	<assembly fullname="Assembly-CSharp">
+		<type fullname="SamsungTeleport">
+			<method name="OnGazeEnter"/>
+		</type>
+		<type fullname="IntroStorySequence">
+			<method name="HandleOnPlayHit"/>
+			<method name="HandleOnPlayHit"/>
+		</type>
+		<type fullname="SceneTeleport">
+			<method name="HandleOnEnter"/>
+			<method name="HandleOnExit"/>
+			<method name="LoadTargetScene"/>
+			<method name="HandleOnEnter"/>
+			<method name="HandleOnExit"/>
+			<method name="LoadTargetScene"/>
+			<method name="HandleOnEnter"/>
+			<method name="HandleOnExit"/>
+			<method name="LoadTargetScene"/>
+			<method name="HandleOnEnter"/>
+			<method name="HandleOnExit"/>
+			<method name="LoadTargetScene"/>
+			<method name="HandleOnEnter"/>
+			<method name="HandleOnExit"/>
+			<method name="LoadTargetScene"/>
+		</type>
+		<type fullname="StoryModeUIController">
+			<method name="HandleOnExploreClicked"/>
+			<method name="HandleOnExploreEnter"/>
+			<method name="HandleOnExploreExit"/>
+			<method name="HandleOnReplayClicked"/>
+			<method name="HandleOnReplayEnter"/>
+			<method name="HandleOnReplayExit"/>
+			<method name="HandleOnQuitClicked"/>
+			<method name="HandleOnQuitEnter"/>
+			<method name="HandleOnQuitExit"/>
+		</type>
+	</assembly>
+</linker>

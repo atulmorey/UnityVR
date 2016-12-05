@@ -33,7 +33,7 @@ public class StoryModeUIController : MonoBehaviour
     {
         _replayTweenID = LeanTween.value(gameObject, 1f, 0f, _gazeHoldTimer).setOnUpdate((float val) =>{
             ReplayImageComp.fillAmount = val;
-        }).setOnComplete(NANDStorySequenceComp.Replay).id;
+        }).setOnComplete(HandleOnReplayClicked).id;
 
     }
 
@@ -49,6 +49,7 @@ public class StoryModeUIController : MonoBehaviour
     public void HandleOnReplayClicked()
     {
         NANDStorySequenceComp.Replay();
+        ReplayImageComp.fillAmount = 1f;
     }
 
     //Quit
@@ -57,7 +58,7 @@ public class StoryModeUIController : MonoBehaviour
         _quiteTweenID = LeanTween.value(gameObject, 1f, 0f, _gazeHoldTimer).setOnUpdate((float val) =>
             {
                 QuitImageComp.fillAmount = val;
-            }).setOnComplete(Application.Quit).id;
+            }).setOnComplete(HandleOnQuitClicked).id;
     }
 
     public void HandleOnQuitExit()
@@ -72,5 +73,30 @@ public class StoryModeUIController : MonoBehaviour
     public void HandleOnQuitClicked()
     {
         Application.Quit();
-    }	
+        QuitImageComp.fillAmount = 1f;
+    }
+
+    public void HandleOnExploreEnter()
+    {
+        _exploreTweenID = LeanTween.value(gameObject, 1f, 0f, _gazeHoldTimer).setOnUpdate((float val) =>
+            {
+                ExploreImageComp.fillAmount = val;
+            }).setOnComplete(HandleOnExploreClicked).id;
+    }
+
+    public void HandleOnExploreExit()
+    {
+        if(LeanTween.isTweening(_exploreTweenID))
+        {
+            LeanTween.cancel(_exploreTweenID);
+            ExploreImageComp.fillAmount = 1f;
+        }
+
+    }
+
+    public void HandleOnExploreClicked()
+    {
+        //TO DO: Explore mode here
+        ExploreImageComp.fillAmount = 1f;
+    }
 }

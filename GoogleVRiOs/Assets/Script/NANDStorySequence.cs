@@ -18,7 +18,7 @@ public class NANDStorySequence : MonoBehaviour
     public GameObject MainCamera;
     public GameObject OneLayer;
     public GameObject ChannelHoleCylinder;
-    public GameObject StoryBoardUI;
+    public GameObject StoryModeUIGameobject;
     public GameObject DisplayTextUI;
 
     [Header("Materials")]
@@ -96,49 +96,49 @@ public class NANDStorySequence : MonoBehaviour
     private Vector3 _mainCamStartPos;
 
     //animTimes
-//    private float _siSubAnimTime = 1f;
-//    private float _oxNiAnimTime = 0.1f;
-//    private float _stairCaseHardMaskAnimTime = 1f;
-//    private float _stairFormAnimTime = 0.1f;
-//    private float _channelHoleHardMaskAnimTime = 1f;
-//    private float _channelHoleCylinderDepositAnimTime = 2f;
-//    private float _channelHoleEtchAnimTime = 2f;
-//    private float _trenchHardMaskAnimTime = 3f;
-//    private float _trenchMaskFadeTime = 7f;
-//    private float _trenchFormAnimTime = 7f;
-//    private float _nitrideRemovalAnimTime = 5f;
-//    private float _tungRecessAnimTime = 3f;
-//    private float _stairCaseContactDepositAnimTime = 2f;
-//    private float _stairCaseContactHardMaskDepositTime = 1f;
-//    private float _staircaseContactMaskEtchAnimTime = 6f;
-//    private float _staircaseContactEtchAnimTime = 2f;
-//    private float _wRecessAnimTime = 7f;
-//    private float _wFillAnimTime = 7f;
-//    private float _triNiDepositOnChannelAnimTime = 7f;
-//    private float _flyByTime = 14f;
+    private float _siSubAnimTime = 1f;
+    private float _oxNiAnimTime = 0.1f;
+    private float _stairCaseHardMaskAnimTime = 1f;
+    private float _stairFormAnimTime = 0.1f;
+    private float _channelHoleHardMaskAnimTime = 1f;
+    private float _channelHoleCylinderDepositAnimTime = 2f;
+    private float _channelHoleEtchAnimTime = 2f;
+    private float _trenchHardMaskAnimTime = 3f;
+    private float _trenchMaskFadeTime = 7f;
+    private float _trenchFormAnimTime = 7f;
+    private float _nitrideRemovalAnimTime = 5f;
+    private float _tungRecessAnimTime = 3f;
+    private float _stairCaseContactDepositAnimTime = 2f;
+    private float _stairCaseContactHardMaskDepositTime = 1f;
+    private float _staircaseContactMaskEtchAnimTime = 6f;
+    private float _staircaseContactEtchAnimTime = 2f;
+    private float _wRecessAnimTime = 7f;
+    private float _wFillAnimTime = 7f;
+    private float _triNiDepositOnChannelAnimTime = 7f;
+    private float _flyByTime = 14f;
 
     //animTimes
-    private float _siSubAnimTime = 0f;
-    private float _oxNiAnimTime = 0f;
-    private float _stairCaseHardMaskAnimTime = 0f;
-    private float _stairFormAnimTime = 0f;
-    private float _channelHoleHardMaskAnimTime = 0f;
-    private float _channelHoleCylinderDepositAnimTime = 0f;
-    private float _channelHoleEtchAnimTime = 0f;
-    private float _trenchHardMaskAnimTime = 0f;
-    private float _trenchMaskFadeTime = 0f;
-    private float _trenchFormAnimTime = 0f;
-    private float _nitrideRemovalAnimTime = 0f;
-    private float _tungRecessAnimTime = 0f;
-    private float _stairCaseContactDepositAnimTime = 0f;
-    private float _stairCaseContactHardMaskDepositTime = 0f;
-    private float _staircaseContactMaskEtchAnimTime = 0f;
-    private float _staircaseContactEtchAnimTime = 0f;
-    private float _wRecessAnimTime = 0f;
-    private float _wFillAnimTime = 0f;
-    private float _triNiDepositOnChannelAnimTime = 0f;
-    private float _flyByTime = 0f;
-
+//    private float _siSubAnimTime = 0f;
+//    private float _oxNiAnimTime = 0f;
+//    private float _stairCaseHardMaskAnimTime = 0f;
+//    private float _stairFormAnimTime = 0f;
+//    private float _channelHoleHardMaskAnimTime = 0f;
+//    private float _channelHoleCylinderDepositAnimTime = 0f;
+//    private float _channelHoleEtchAnimTime = 0f;
+//    private float _trenchHardMaskAnimTime = 0f;
+//    private float _trenchMaskFadeTime = 0f;
+//    private float _trenchFormAnimTime = 0f;
+//    private float _nitrideRemovalAnimTime = 0f;
+//    private float _tungRecessAnimTime = 0f;
+//    private float _stairCaseContactDepositAnimTime = 0f;
+//    private float _stairCaseContactHardMaskDepositTime = 0f;
+//    private float _staircaseContactMaskEtchAnimTime = 0f;
+//    private float _staircaseContactEtchAnimTime = 0f;
+//    private float _wRecessAnimTime = 0f;
+//    private float _wFillAnimTime = 0f;
+//    private float _triNiDepositOnChannelAnimTime = 0f;
+//    private float _flyByTime = 0f;
+//
     //distances
     private float _targetY = 0f;
     private float _staircaseHardMaskYoffset = 0f;
@@ -2201,10 +2201,11 @@ public class NANDStorySequence : MonoBehaviour
     {
         _displayTextUIController.DisableDisplay();
 
-        GameObject.Destroy(_wTrench1_1);
-        GameObject.Destroy(_wTrench1_2);
-        GameObject.Destroy(_wTrench2_1);
-        GameObject.Destroy(_wTrench2_2);
+        if (_wTrench1_1 != null) GameObject.Destroy(_wTrench1_1);
+        if (_wTrench1_2 != null) GameObject.Destroy(_wTrench1_2);
+        if (_wTrench2_1 != null) GameObject.Destroy(_wTrench2_1);
+        if (_wTrench2_2 != null) GameObject.Destroy(_wTrench2_2);
+        if (_wTrench3 != null) GameObject.Destroy(_wTrench3);
 
         //Reset toon shader
         OxideMat.SetFloat("_Outline", 0f);
@@ -2445,12 +2446,17 @@ public class NANDStorySequence : MonoBehaviour
 
     void EnableStoryModeUI()
     {
-        StoryBoardUI.SetActive(true);
+        StoryModeUIGameobject.SetActive(true);
     }
 
     void DisableStoryModeUI()
     {
-        StoryBoardUI.SetActive(false);
+        StoryModeUIGameobject.SetActive(false);
+    }
+
+    public void EnableExploreMode()
+    {
+
     }
 
 
