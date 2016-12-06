@@ -14,6 +14,7 @@ public class StoryModeUIController : MonoBehaviour
     public Image QuitImageComp;
 
     public NANDStorySequence NANDStorySequenceComp;
+    public GameObject TeleportationSystem;
 
     private float _gazeHoldTimer = 2f;
 
@@ -25,6 +26,9 @@ public class StoryModeUIController : MonoBehaviour
 	void Start () 
     {
         Debug.Assert(NANDStorySequenceComp != null, "NANDStorySequenceComp is missing");
+
+        //Make sure teleport is off
+        TeleportationSystem.SetActive(false);
 	
 	}   
 
@@ -97,6 +101,9 @@ public class StoryModeUIController : MonoBehaviour
     public void HandleOnExploreClicked()
     {
         //TO DO: Explore mode here
+        TeleportationSystem.SetActive(true);
+        TeleportationSystem.GetComponent<TeleportationSystemController>().EnableExploreMode();
+
         ExploreImageComp.fillAmount = 1f;
     }
 }

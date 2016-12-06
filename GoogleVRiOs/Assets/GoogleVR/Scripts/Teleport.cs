@@ -19,7 +19,7 @@ using System.Collections;
 public class Teleport : MonoBehaviour, IGvrGazeResponder
 {
     public GameObject MainCamera;
-    public Material CubeDefaultMat;
+    public bool isTriggered = false;
 
     private Vector3 _cubeStartingPos;
     private Vector3 _mainCamStartingPos;
@@ -29,16 +29,23 @@ public class Teleport : MonoBehaviour, IGvrGazeResponder
     private ScreenFader _screenFader;
     private float _camFadeTime = 1f;
 
+    private Material _currentMat;
+    private Color _currentCol;
+    private int _tweenID;
+    private float _gazeTimer = 2f; //In SECONDS
+
+
+
     void Start ()
     {
         _cubeStartingPos = transform.localPosition;
 
         _mainCamStartingPos = MainCamera.transform.localPosition;
 
-        //Set the default material
-        GetComponent<Renderer>().material = CubeDefaultMat;
+        _currentMat = GetComponent<Renderer>().material;
+        _currentCol = _currentMat.color;
 
-        SetVisualEffect();
+        isTriggered = false;
         SetGazedAt (false);
 
         _gameManager = GameManager.Instance;
@@ -61,15 +68,14 @@ public class Teleport : MonoBehaviour, IGvrGazeResponder
 
     void SetVisualEffect()
     {
-        //Force reset the material
-        GetComponent<Renderer>().material = CubeDefaultMat;  
+//        Color currentColor = _currentMat.color;
+//        Color targetColor = NANDUtils.AppExLightOrange;
+//        
+//        _tweenID = LeanTween.value(gameObject, currentColor, targetColor, 2f).setLoopPingPong().setOnUpdate((Color col)=>{
+//            _currentMat.color = col;
+//        }).id;
+//
 
-        LeanTween.rotateY(gameObject, transform.localEulerAngles.y + 90f, 2f).setEase(LeanTweenType.easeInOutCubic).setLoopPingPong();
-
-        float perctIncrease = 5f;
-        Vector3 targetScale = new Vector3(perctIncrease * 0.01f / transform.localScale.x, perctIncrease * 0.01f / transform.localScale.y, perctIncrease * 0.01f / transform.localScale.z);
-
-        LeanTween.scale(gameObject, targetScale, 2f).setEase(LeanTweenType.easeInOutCubic).setLoopPingPong();
 
     }
 
@@ -83,29 +89,18 @@ public class Teleport : MonoBehaviour, IGvrGazeResponder
         //Make the cube turn green in 2 seconds when set gaze on
         //Once complete, do the trigger
 
-        Material thisMat = gameObject.GetComponent<Renderer>().material;
 
         if (gazedAt)
         {
-            //Cancel tweens
-            LeanTween.cancel(gameObject);    
+            Color currentColor = _currentMat.color;
+            Color targetColor = NANDUtils.AppExLightOrange;
 
-            gameObject.SetActive(false);
+            _tweenID = LeanTween.value(gameObject, currentColor, targetColor, _gazeTimer).setOnUpdate((Color col)=>{
+                _currentMat.color = col;
+            }).setOnComplete(OnGazeTrigger).id;
 
-            //Animate the emission on the material for 2 seconds
-            thisMat.EnableKeyword("_EMISSION");
-            thisMat.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive;
-
-            LeanTween.color(gameObject, Color.green, 2f).setOnUpdate((Color col) =>
-                {
-                    thisMat.SetColor("_EmissionColor", col);
-                }).setOnComplete(OnGazeTrigger);
         }
-        else
-        {
-            GetComponent<Renderer>().material = CubeDefaultMat;         
-            SetVisualEffect();
-        }
+
          
     }
 
@@ -135,24 +130,27 @@ public class Teleport : MonoBehaviour, IGvrGazeResponder
 
 
     public void TeleportToTarget()
-    {
+    {       
+
         float time = Vector3.Distance(MainCamera.transform.position, transform.position) / _portSpeed;
 //        DisableThisGameobject();
 
         //Option 1: Animate
-        LeanTween.move(MainCamera, transform.position, time).setOnComplete(SetVisualEffect);
+        this.gameObject.SetActive(false);
+        LeanTween.move(MainCamera, transform.position, time).setOnComplete(TriggerTeleportEvent);
 
-        //Option 2: just teleport
-//        MainCamera.transform.position = transform.position;
-
-
-        //Option 3: Camera Fade
-//        _camFadeTime = time / 2f;
-//        LeanTween.move(MainCamera, transform.position, time).setOnStart(FadeIn).setOnComplete(FadeIn);
-
-
+        //Reset material
+        _currentMat.color = _currentCol;
 
     }   
+
+    void TriggerTeleportEvent()
+    {
+        //Create an teleport event trigger
+
+        EventManager.TriggerEvent ("teleport");
+
+    }
 
     void FadeIn()
     {
@@ -175,6 +173,10 @@ public class Teleport : MonoBehaviour, IGvrGazeResponder
     public void OnGazeExit ()
     {
         SetGazedAt (false);
+
+        //Cancel tween and reset the color
+        LeanTween.cancel(_tweenID);
+        _currentMat.color = NANDUtils.AppExLightGreen;
     }
 
     /// Called when the viewer's trigger is used, between OnGazeEnter and OnGazeExit.
