@@ -19,16 +19,25 @@ public class IntroStorySequence : MonoBehaviour
     public Transform SamsungPickUpTr;
     public Transform SamsungZoomInTr;
 
+    [Header("AudioClips")]
+    public AudioClip Clip1;
+    public AudioClip Clip2;
+    public AudioClip Clip3;
 
     //Private 
     private Light _samsungHighlight;
     private int _samsungHighlightTweenID;
     private ScreenFader _screenFader;
+
+    AudioSource BootAudio;
 	
     // Use this for initialization
 	void Start () 
     {
 //        StandUp();
+
+        //EXAMPLE FOR PLAYING CLIP1
+        if (Clip1 != null)  BootAudio.PlayOneShot(Clip1);
 
         _samsungHighlight = SamsungPointLight.GetComponent<Light>();
         _samsungHighlight.intensity = 0f;
@@ -69,6 +78,8 @@ public class IntroStorySequence : MonoBehaviour
 
     void StartBlinkingSamsungLight()
     {
+        if (Clip2 != null) BootAudio.PlayOneShot(Clip2);
+
         _samsungHighlightTweenID = LeanTween.value(SamsungPointLight, 0f, 8f, 1.5f).setLoopPingPong().setOnUpdate((float val) =>{
             _samsungHighlight.intensity = val;
         }).id;
