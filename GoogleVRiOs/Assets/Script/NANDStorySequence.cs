@@ -1670,7 +1670,7 @@ public class NANDStorySequence : MonoBehaviour
         
     void DepositChannelHoleCylinders()
     {  
-        _displayTextUIController.DisplayString("CHANNEL HOLES");
+        _displayTextUIController.DisplayString("MEMORY HOLES");
         _channelHoleClndrParent = new GameObject("ChannelHoleCylinderParent");
         _channelHoleClndrParent.transform.parent = transform;
 
@@ -2258,7 +2258,7 @@ public class NANDStorySequence : MonoBehaviour
 
     void BeginStaircaseContactHardMaskDeposit()
     {   
-        _displayTextUIController.DisplayString("HARDMASK DEPOSITION");
+        _displayTextUIController.DisplayString("DIELECTRIC & HARDMASK DEPOSITION");
 
         _targetY = SiliconSubtrateThickness + (NumberOfLayers * OxideThickness)+ (NumberOfLayers * NitrideThickness) + StairCaseContactThickness + (stairCaseContactHardMaskThickness / 2f);
 

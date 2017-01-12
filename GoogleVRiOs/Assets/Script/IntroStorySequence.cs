@@ -34,17 +34,20 @@ public class IntroStorySequence : MonoBehaviour
     // Use this for initialization
 	void Start () 
     {
-//        StandUp();
+        Debug.Assert(Clip1 != null, "Clip1 is null");
+        Debug.Assert(Clip2 != null, "Clip2 is null");
+        Debug.Assert(Clip3 != null, "Clip3 is null");
 
         //EXAMPLE FOR PLAYING CLIP1
-        if (Clip1 != null)  BootAudio.PlayOneShot(Clip1);
+//        if (Clip1 != null)  
+        BootAudio = GetComponent<AudioSource>();
+        BootAudio.clip = Clip1;
+        BootAudio.PlayDelayed(8);
 
         _samsungHighlight = SamsungPointLight.GetComponent<Light>();
         _samsungHighlight.intensity = 0f;
 
         _screenFader = MainCamera.GetComponent<ScreenFader>();
-
-//        HyperSpeedParticle.SetActive(false);
 
         _screenFader.fadeIn = true;
 	
@@ -54,7 +57,7 @@ public class IntroStorySequence : MonoBehaviour
     {
         Image playBottomImg = PlayButton.GetComponent<Image>();
      
-            LeanTween.value(PlayButton, 1f, 0f, 2f).setOnUpdate((float val) =>
+        LeanTween.value(PlayButton, 1f, 0f, 2f).setOnUpdate((float val) =>
                 {
                 playBottomImg.fillAmount = val;
                 }
@@ -65,7 +68,10 @@ public class IntroStorySequence : MonoBehaviour
     }
 
     void StandUp()
-    {
+    { 
+        BootAudio.clip = Clip2;
+        BootAudio.Play();
+
         PlayCanvas.SetActive(false);
         LeanTween.move(MainCamera, StandUpTr.position, 1f).setEase(LeanTweenType.easeInOutBack).setDelay(2f).setOnComplete(WalkToSamsung);
 
@@ -78,7 +84,8 @@ public class IntroStorySequence : MonoBehaviour
 
     void StartBlinkingSamsungLight()
     {
-        if (Clip2 != null) BootAudio.PlayOneShot(Clip2);
+        BootAudio.clip = Clip3;
+        BootAudio.Play();
 
         _samsungHighlightTweenID = LeanTween.value(SamsungPointLight, 0f, 8f, 1.5f).setLoopPingPong().setOnUpdate((float val) =>{
             _samsungHighlight.intensity = val;
@@ -107,22 +114,12 @@ public class IntroStorySequence : MonoBehaviour
 
         LeanTween.move(MainCamera, SamsungZoomInTr.position, 2f).setOnComplete(LoadScene);
 
-        IEnumerator loadCoroutine = WaitAndLoad(4f);
-        StartCoroutine(loadCoroutine);
-
     }
 
     void LoadScene()
     {
-        float fadeTime = 1f;
-
-        _screenFader.fadeTime = 1f;
-        _screenFader.fadeColor = Color.black;
-        _screenFader.fadeIn = false;
-        _screenFader.DoFade();
-
-
-
+        IEnumerator loadCoroutine = WaitAndLoad(2f);
+        StartCoroutine(loadCoroutine);
     }
 
     private IEnumerator WaitAndLoad (float waitTime)

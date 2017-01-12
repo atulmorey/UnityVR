@@ -30,7 +30,7 @@ public class Teleport : MonoBehaviour, IGvrGazeResponder
     private float _camFadeTime = 1f;
 
     private Material _currentMat;
-    private Color _currentCol;
+//    private Color _currentCol;
     private int _tweenID;
     private float _gazeTimer = 2f; //In SECONDS
 
@@ -43,7 +43,7 @@ public class Teleport : MonoBehaviour, IGvrGazeResponder
         _mainCamStartingPos = MainCamera.transform.localPosition;
 
         _currentMat = GetComponent<Renderer>().material;
-        _currentCol = _currentMat.color;
+//        _currentCol = _currentMat.color;
 
         isTriggered = false;
         SetGazedAt (false);
@@ -89,6 +89,8 @@ public class Teleport : MonoBehaviour, IGvrGazeResponder
         //Make the cube turn green in 2 seconds when set gaze on
         //Once complete, do the trigger
 
+        //Comment this out for Eye Icon spheres
+        /*
 
         if (gazedAt)
         {
@@ -99,6 +101,14 @@ public class Teleport : MonoBehaviour, IGvrGazeResponder
                 _currentMat.color = col;
             }).setOnComplete(OnGazeTrigger).id;
 
+        }
+        */
+
+        //Blank tween to trigger next event 
+        //For Eye Icon spheres
+        if (gazedAt)
+        {
+            _tweenID = LeanTween.value(gameObject, 0f, 1f, _gazeTimer).setOnComplete(OnGazeTrigger).id;
         }
 
          
@@ -140,7 +150,7 @@ public class Teleport : MonoBehaviour, IGvrGazeResponder
         LeanTween.move(MainCamera, transform.position, time).setOnComplete(TriggerTeleportEvent);
 
         //Reset material
-        _currentMat.color = _currentCol;
+//        _currentMat.color = _currentCol;
 
     }   
 
@@ -176,12 +186,13 @@ public class Teleport : MonoBehaviour, IGvrGazeResponder
 
         //Cancel tween and reset the color
         LeanTween.cancel(_tweenID);
-        _currentMat.color = NANDUtils.AppExLightGreen;
+//        _currentMat.color = NANDUtils.AppExLightGreen;
     }
 
     /// Called when the viewer's trigger is used, between OnGazeEnter and OnGazeExit.
     public void OnGazeTrigger ()
-    {        
+    {   
+        SetGazedAt (false);
         TeleportToTarget();
     }
 

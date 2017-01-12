@@ -6,6 +6,7 @@ public class TeleportationSystemController : MonoBehaviour
 {
     public Teleport[] TeleportPoints;
     public GameObject StoryModeUICanvas;
+    public GameObject MainCamera;
 
     //Add Event listner
     private UnityAction _teleportListner;
@@ -54,9 +55,10 @@ public class TeleportationSystemController : MonoBehaviour
         //Disable all except TeleportPoints[0]
         foreach(Teleport t in TeleportPoints)
         {
+            
             t.gameObject.SetActive(false);
         }
-
+        TeleportPoints[0].transform.LookAt(MainCamera.transform);
         TeleportPoints[0].gameObject.SetActive(true);
 
         //Make sure Story Mode UI is Disabled
@@ -72,7 +74,13 @@ public class TeleportationSystemController : MonoBehaviour
         //Get the instance of teleport where it is coming from
         if (counter < TeleportPoints.Length )
         {
+            foreach(Teleport t in TeleportPoints)
+            {
+                t.gameObject.SetActive(false);
+            }
             TeleportPoints[counter].gameObject.SetActive(true);
+            TeleportPoints[counter].transform.LookAt(MainCamera.transform);
+
             if(StoryModeUICanvas.activeSelf)
             {
                 StoryModeUICanvas.SetActive(false);
@@ -81,6 +89,11 @@ public class TeleportationSystemController : MonoBehaviour
         else
         {
             counter = 0;
+            foreach(Teleport t in TeleportPoints)
+            {
+                t.gameObject.SetActive(false);
+            }
+            TeleportPoints[counter].transform.LookAt(MainCamera.transform);
             TeleportPoints[counter].gameObject.SetActive(true);
             StoryModeUICanvas.SetActive(true);
         }
